@@ -418,5 +418,17 @@
   <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
   <script src="/static/livechat.js"></script>
 
+  <!-- COOKIE BANNER -->
+  <div id="cookie-banner" style="display:none">
+    <div class="cookie-text">
+      <span>🍪</span>
+      <span>Ce site utilise des cookies pour améliorer votre expérience et afficher des publicités personnalisées. En continuant, vous acceptez notre utilisation des cookies conformément au <a href="#">RGPD</a>.</span>
+    </div>
+    <div class="cookie-btns">
+      <button class="cookie-refuse" onclick="cookieRefuse()">Refuser</button>
+      <button class="cookie-accept" onclick="cookieAccept()">Accepter</button>
+    </div>
+  </div>
+  <script src="/static/cookies.js"></script>
 </body>
 </html>

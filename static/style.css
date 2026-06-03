@@ -1660,6 +1660,55 @@ main {
 .hi-orange{ border-top: 2px solid #f97316; box-shadow: 0 -1px 12px rgba(249, 115, 22, 0.1); }
 .hi-purple{ border-top: 2px solid #a78bfa; box-shadow: 0 -1px 12px rgba(167, 139, 250, 0.1); }
 
+/* ── COOKIE BANNER ────────────────────────────────────────────────────── */
+
+#cookie-banner {
+  position: fixed; bottom: 0; left: 0; right: 0; z-index: 8999;
+  background: rgba(5, 8, 16, 0.97);
+  border-top: 1px solid rgba(0, 240, 255, 0.15);
+  backdrop-filter: blur(16px);
+  padding: 16px 24px;
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 16px; flex-wrap: wrap;
+  box-shadow: 0 -4px 30px rgba(0, 240, 255, 0.06);
+  animation: slideUp .3s ease;
+}
+@keyframes slideUp {
+  from { transform: translateY(100%); opacity: 0; }
+  to   { transform: translateY(0);    opacity: 1; }
+}
+.cookie-text {
+  display: flex; align-items: center; gap: 10px;
+  font-size: 13px; color: #7a96b4; line-height: 1.5; flex: 1;
+}
+.cookie-text a { color: var(--accent2); text-decoration: none; }
+.cookie-text a:hover { text-decoration: underline; }
+.cookie-btns { display: flex; gap: 8px; flex-shrink: 0; }
+.cookie-accept {
+  background: var(--accent2); border: none;
+  color: #050810; font-size: 12px; font-weight: 700;
+  font-family: 'Inter', sans-serif;
+  padding: 9px 20px; border-radius: 8px; cursor: pointer;
+  box-shadow: 0 0 14px rgba(0,240,255,.3);
+  transition: box-shadow .2s;
+}
+.cookie-accept:hover { box-shadow: 0 0 22px rgba(0,240,255,.5); }
+.cookie-refuse {
+  background: transparent; border: 1px solid #182035;
+  color: #4d6080; font-size: 12px; font-weight: 600;
+  font-family: 'Inter', sans-serif;
+  padding: 9px 16px; border-radius: 8px; cursor: pointer;
+  transition: border-color .2s, color .2s;
+}
+.cookie-refuse:hover { border-color: #4d6080; color: #7a96b4; }
+
+/* ── GOOGLE ADSENSE ───────────────────────────────────────────────────── */
+.ad-slot {
+  width: 100%; min-height: 90px;
+  display: flex; align-items: center; justify-content: center;
+  margin: 1rem 0;
+}
+
 /* ── LIVE CHAT WIDGET ─────────────────────────────────────────────────── */
 
 #lc-widget { position: fixed; bottom: 24px; right: 24px; z-index: 9000; }
