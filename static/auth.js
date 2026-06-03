@@ -12,6 +12,22 @@ async function authInit() {
   const { data: { session } } = await sb().auth.getSession();
   const user = session?.user;
   updateNavAuth(user);
+
+  // Vérifier abonnement Supabase et activer premium si abonné
+  if (user && !localStorage.getItem('premium_token')) {
+    try {
+      const res = await fetch('/api/subscription-status', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({user_id: user.id})
+      });
+      const data = await res.json();
+      if (data.premium) {
+        localStorage.setItem('premium_token', 'supabase-' + user.id);
+        localStorage.setItem('premium_email', user.email);
+      }
+    } catch {}
+  }
 }
 
 function updateNavAuth(user) {

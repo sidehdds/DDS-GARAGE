@@ -149,6 +149,15 @@
       document.getElementById('user-avatar').textContent = name.charAt(0).toUpperCase();
       document.getElementById('user-name').textContent = name;
 
+      // Vérifier statut abonnement
+      try {
+        const res = await fetch('/api/subscription-status', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({user_id: currentUser.id})});
+        const sub = await res.json();
+        if (sub.premium) {
+          document.getElementById('user-name').innerHTML = name + ' <span style="background:rgba(0,240,255,.12);border:1px solid rgba(0,240,255,.25);color:#00f0ff;font-size:9px;font-weight:700;letter-spacing:1px;padding:2px 8px;border-radius:10px;vertical-align:middle;">PREMIUM</span>';
+        }
+      } catch {}
+
       await loadVehicles();
     }
 

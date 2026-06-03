@@ -118,11 +118,63 @@ def redeem_promo():
     active_tokens[token] = {'expires': datetime.now() + timedelta(days=36500), 'email': 'promo'}
     return jsonify({'success': True, 'token': token})
 
+SUPABASE_URL = os.environ.get('SUPABASE_URL', '')
+SUPABASE_SERVICE_KEY = os.environ.get('SUPABASE_SERVICE_KEY', '')
+
+def supabase_upsert_subscription(user_id, email, stripe_customer_id, stripe_sub_id):
+    """Enregistre l'abonnement dans Supabase via service role."""
+    try:
+        resp = requests.post(
+            f"{SUPABASE_URL}/rest/v1/subscriptions",
+            headers={
+                "apikey": SUPABASE_SERVICE_KEY,
+                "Authorization": f"Bearer {SUPABASE_SERVICE_KEY}",
+                "Content-Type": "application/json",
+                "Prefer": "resolution=merge-duplicates"
+            },
+            json={
+                "user_id": user_id,
+                "stripe_customer_id": stripe_customer_id,
+                "stripe_subscription_id": stripe_sub_id,
+                "status": "active",
+                "expires_at": (datetime.now() + timedelta(days=32)).isoformat()
+            }
+        )
+        return resp.status_code in (200, 201)
+    except Exception:
+        return False
+
+@app.route("/api/subscription-status", methods=["POST"])
+def subscription_status():
+    user_id = request.get_json().get('user_id', '')
+    if not user_id:
+        return jsonify({'premium': False})
+    try:
+        resp = requests.get(
+            f"{SUPABASE_URL}/rest/v1/subscriptions",
+            headers={
+                "apikey": SUPABASE_SERVICE_KEY,
+                "Authorization": f"Bearer {SUPABASE_SERVICE_KEY}"
+            },
+            params={"user_id": f"eq.{user_id}", "status": "eq.active", "select": "expires_at"}
+        )
+        rows = resp.json()
+        if rows and isinstance(rows, list):
+            expires = rows[0].get('expires_at', '')
+            if expires and datetime.fromisoformat(expires.replace('Z', '+00:00')).replace(tzinfo=None) > datetime.now():
+                return jsonify({'premium': True})
+    except Exception:
+        pass
+    return jsonify({'premium': False})
+
 @app.route("/api/create-checkout", methods=["POST"])
 def create_checkout():
     try:
+        data = request.get_json() or {}
+        user_id = data.get('user_id', '')
+        email = data.get('email', '')
         base = request.host_url.rstrip('/')
-        checkout = stripe.checkout.Session.create(
+        params = dict(
             payment_method_types=['card'],
             line_items=[{'price': STRIPE_PRICE_ID, 'quantity': 1}],
             mode='subscription',
@@ -130,6 +182,11 @@ def create_checkout():
             cancel_url=f"{base}/diagnostic",
             locale='fr',
         )
+        if user_id:
+            params['client_reference_id'] = user_id
+        if email:
+            params['customer_email'] = email
+        checkout = stripe.checkout.Session.create(**params)
         return jsonify({'url': checkout.url})
     except Exception as e:
         return jsonify({'error': str(e)}), 500
@@ -140,11 +197,16 @@ def payment_success():
     token = ''
     email = ''
     try:
-        cs = stripe.checkout.Session.retrieve(session_id)
+        cs = stripe.checkout.Session.retrieve(session_id, expand=['subscription'])
         if cs.status == 'complete':
             token = str(uuid.uuid4())
             email = cs.customer_details.email or ''
             active_tokens[token] = {'expires': datetime.now() + timedelta(days=32), 'email': email}
+            # Lier à Supabase si user connecté
+            user_id = cs.client_reference_id or ''
+            if user_id:
+                stripe_sub_id = cs.subscription.id if cs.subscription else ''
+                supabase_upsert_subscription(user_id, email, cs.customer or '', stripe_sub_id)
     except Exception:
         pass
     return render_template('payment_success.html', token=token, email=email,
@@ -159,9 +221,26 @@ def verify_token():
 
 @app.route("/api/diagnostic", methods=["POST"])
 def api_diagnostic():
-    # Vérification quota / token premium
+    # Vérification premium : token localStorage OU abonnement Supabase
     token = request.headers.get('X-Premium-Token', '')
+    user_id = request.headers.get('X-User-Id', '')
     is_premium = (token in active_tokens and active_tokens[token]['expires'] > datetime.now())
+
+    # Vérifier abonnement Supabase si user connecté
+    if not is_premium and user_id:
+        sub_resp = requests.get(
+            f"{SUPABASE_URL}/rest/v1/subscriptions",
+            headers={"apikey": SUPABASE_SERVICE_KEY, "Authorization": f"Bearer {SUPABASE_SERVICE_KEY}"},
+            params={"user_id": f"eq.{user_id}", "status": "eq.active", "select": "expires_at"}
+        )
+        rows = sub_resp.json()
+        if rows and isinstance(rows, list) and rows:
+            try:
+                exp = rows[0].get('expires_at', '')
+                if exp and datetime.fromisoformat(exp.replace('Z', '+00:00')).replace(tzinfo=None) > datetime.now():
+                    is_premium = True
+            except Exception:
+                pass
 
     if not is_premium:
         ip = request.headers.get('X-Forwarded-For', request.remote_addr).split(',')[0].strip()

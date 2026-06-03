@@ -775,7 +775,13 @@
     }
 
     async function lancerPaiement() {
-      const res = await fetch('/api/create-checkout', { method:'POST', headers:{'Content-Type':'application/json'} });
+      let user_id = '', email = '';
+      try {
+        const sbClient = window.supabase?.createClient('https://oakhuffubspawhqtbigv.supabase.co','sb_publishable_CVs7EnDiKwVB87nrB-QFNw_sVb2bDzy');
+        const { data: { session } } = await sbClient.auth.getSession();
+        if (session?.user) { user_id = session.user.id; email = session.user.email; }
+      } catch {}
+      const res = await fetch('/api/create-checkout', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({user_id, email}) });
       const data = await res.json();
       if (data.url) window.location.href = data.url;
     }

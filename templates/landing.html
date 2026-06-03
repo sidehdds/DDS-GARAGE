@@ -420,7 +420,15 @@
 
   <script>
     async function lancerPaiementLanding() {
-      const res = await fetch('/api/create-checkout', { method:'POST', headers:{'Content-Type':'application/json'} });
+      let user_id = '', email = '';
+      try {
+        const sbClient = window.supabase?.createClient('https://oakhuffubspawhqtbigv.supabase.co','sb_publishable_CVs7EnDiKwVB87nrB-QFNw_sVb2bDzy');
+        if (sbClient) {
+          const { data: { session } } = await sbClient.auth.getSession();
+          if (session?.user) { user_id = session.user.id; email = session.user.email; }
+        }
+      } catch {}
+      const res = await fetch('/api/create-checkout', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({user_id, email}) });
       const data = await res.json();
       if (data.url) window.location.href = data.url;
     }
@@ -498,6 +506,7 @@
       <span class="lc-fab-badge lc-hidden" id="lc-badge">1</span>
     </button>
   </div>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
   <script src="/static/livechat.js"></script>
 
