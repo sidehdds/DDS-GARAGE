@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>DDS GARAGE — Connexion</title>
+  <link rel="stylesheet" href="/static/style.css"/>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+  <style>
+    body { display:flex; flex-direction:column; align-items:center; justify-content:center; min-height:100vh; padding:1rem; }
+    .auth-logo { font-family:'Bebas Neue',sans-serif; font-size:1.8rem; letter-spacing:5px; color:#fff; margin-bottom:24px; text-align:center; }
+    .auth-logo span { color:#00f0ff; text-shadow:0 0 14px rgba(0,240,255,.6); }
+    .auth-box {
+      background:var(--surface); border:1px solid rgba(0,240,255,.18);
+      border-radius:20px; padding:36px 32px; width:100%; max-width:380px;
+      box-shadow:0 0 50px rgba(0,240,255,.07), 0 20px 60px rgba(0,0,0,.5);
+    }
+    .auth-tabs { display:flex; gap:4px; background:var(--surface2); border-radius:10px; padding:4px; margin-bottom:24px; }
+    .auth-tab {
+      flex:1; padding:8px; border-radius:7px; border:none; background:transparent;
+      color:var(--muted); font-size:12px; font-weight:600; font-family:'Inter',sans-serif;
+      cursor:pointer; transition:all .2s;
+    }
+    .auth-tab.active { background:var(--surface); color:var(--text); box-shadow:0 1px 4px rgba(0,0,0,.3); }
+    .auth-label { font-size:11px; font-weight:600; letter-spacing:1.2px; text-transform:uppercase; color:var(--muted); margin-bottom:6px; display:block; }
+    .auth-input {
+      width:100%; background:var(--surface2); border:1px solid var(--border);
+      border-radius:8px; color:var(--text); padding:11px 14px;
+      font-size:13px; font-family:'Inter',sans-serif; outline:none;
+      transition:border-color .2s, box-shadow .2s; margin-bottom:14px;
+    }
+    .auth-input:focus { border-color:var(--accent2); box-shadow:0 0 0 2px rgba(0,240,255,.08); }
+    .auth-btn {
+      width:100%; background:var(--accent2); border:none; color:#050810;
+      font-size:13px; font-weight:700; font-family:'Inter',sans-serif;
+      padding:12px; border-radius:9px; cursor:pointer;
+      box-shadow:0 0 16px rgba(0,240,255,.3); transition:box-shadow .2s; margin-bottom:16px;
+    }
+    .auth-btn:hover { box-shadow:0 0 26px rgba(0,240,255,.5); }
+    .auth-divider { display:flex; align-items:center; gap:10px; margin:4px 0 16px; }
+    .auth-divider span { flex:1; height:1px; background:var(--border); }
+    .auth-divider p { font-size:11px; color:var(--muted); white-space:nowrap; }
+    .oauth-btn {
+      width:100%; display:flex; align-items:center; justify-content:center; gap:10px;
+      background:var(--surface2); border:1px solid var(--border);
+      border-radius:9px; padding:11px; font-size:13px; font-weight:600;
+      font-family:'Inter',sans-serif; color:var(--text); cursor:pointer;
+      transition:border-color .2s, box-shadow .2s; margin-bottom:10px;
+    }
+    .oauth-btn:hover { border-color:rgba(0,240,255,.3); box-shadow:0 0 10px rgba(0,240,255,.08); }
+    .auth-error { background:rgba(230,57,70,.08); border:1px solid rgba(230,57,70,.25); border-radius:7px; color:#f87171; padding:9px 12px; font-size:12px; margin-bottom:14px; display:none; }
+    .auth-success { background:rgba(74,222,128,.08); border:1px solid rgba(74,222,128,.2); border-radius:7px; color:#4ade80; padding:9px 12px; font-size:12px; margin-bottom:14px; display:none; }
+    .back-link { margin-top:16px; font-size:12px; color:var(--muted); text-align:center; }
+    .back-link a { color:var(--accent2); text-decoration:none; }
+  </style>
+</head>
+<body>
+  <div class="auth-logo">DDS<span>GARAGE</span></div>
+
+  <div class="auth-box">
+    <div class="auth-tabs">
+      <button class="auth-tab active" id="tab-login" onclick="switchTab('login')">Se connecter</button>
+      <button class="auth-tab" id="tab-register" onclick="switchTab('register')">Créer un compte</button>
+    </div>
+
+    <div id="auth-error" class="auth-error"></div>
+    <div id="auth-success" class="auth-success"></div>
+
+    <!-- Email / Password -->
+    <label class="auth-label">Email</label>
+    <input type="email" id="auth-email" class="auth-input" placeholder="votre@email.com" autocomplete="email"/>
+    <label class="auth-label">Mot de passe</label>
+    <input type="password" id="auth-password" class="auth-input" placeholder="••••••••" autocomplete="current-password"/>
+    <button class="auth-btn" id="auth-submit" onclick="authSubmit()">Se connecter</button>
+
+    <div class="auth-divider"><span></span><p>ou continuer avec</p><span></span></div>
+
+    <button class="oauth-btn" onclick="oauthLogin('google')">
+      <svg width="18" height="18" viewBox="0 0 24 24"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>
+      Continuer avec Google
+    </button>
+
+    <button class="oauth-btn" onclick="oauthLogin('apple')">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98l-.09.06c-.22.14-2.18 1.27-2.16 3.8.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/></svg>
+      Continuer avec Apple
+    </button>
+  </div>
+
+  <div class="back-link"><a href="/">← Retour à l'accueil</a></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script>
+    const SB_URL  = 'https://oakhuffubspawhqtbigv.supabase.co';
+    const SB_ANON = 'sb_publishable_CVs7EnDiKwVB87nrB-QFNw_sVb2bDzy';
+    const _sb = window.supabase.createClient(SB_URL, SB_ANON);
+
+    let mode = 'login';
+
+    function switchTab(t) {
+      mode = t;
+      document.getElementById('tab-login').classList.toggle('active', t === 'login');
+      document.getElementById('tab-register').classList.toggle('active', t === 'register');
+      document.getElementById('auth-submit').textContent = t === 'login' ? 'Se connecter' : 'Créer mon compte';
+      document.getElementById('auth-password').autocomplete = t === 'login' ? 'current-password' : 'new-password';
+      hideMsg();
+    }
+
+    async function authSubmit() {
+      const email = document.getElementById('auth-email').value.trim();
+      const password = document.getElementById('auth-password').value;
+      hideMsg();
+      if (!email || !password) return showError('Remplis tous les champs.');
+      const btn = document.getElementById('auth-submit');
+      btn.textContent = '…'; btn.disabled = true;
+      try {
+        if (mode === 'login') {
+          const { error } = await _sb.auth.signInWithPassword({ email, password });
+          if (error) throw error;
+          window.location.href = '/garage';
+        } else {
+          const { error } = await _sb.auth.signUp({ email, password });
+          if (error) throw error;
+          showSuccess('Compte créé ! Vérifie ton email pour confirmer.');
+        }
+      } catch(e) {
+        showError(e.message || 'Erreur de connexion');
+      } finally {
+        btn.textContent = mode === 'login' ? 'Se connecter' : 'Créer mon compte';
+        btn.disabled = false;
+      }
+    }
+
+    async function oauthLogin(provider) {
+      const { error } = await _sb.auth.signInWithOAuth({
+        provider,
+        options: { redirectTo: window.location.origin + '/garage' }
+      });
+      if (error) showError(error.message);
+    }
+
+    document.getElementById('auth-password').addEventListener('keydown', e => {
+      if (e.key === 'Enter') authSubmit();
+    });
+
+    function showError(msg) { const el = document.getElementById('auth-error'); el.textContent = '❌ ' + msg; el.style.display = 'block'; }
+    function showSuccess(msg) { const el = document.getElementById('auth-success'); el.textContent = '✅ ' + msg; el.style.display = 'block'; }
+    function hideMsg() { document.getElementById('auth-error').style.display = 'none'; document.getElementById('auth-success').style.display = 'none'; }
+
+    // Redirect if already logged in
+    _sb.auth.getSession().then(({ data: { session } }) => {
+      if (session) window.location.href = '/garage';
+    });
+  </script>
+</body>
+</html>

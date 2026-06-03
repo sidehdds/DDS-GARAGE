@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>DDS GARAGE — Mon Garage</title>
+  <link rel="stylesheet" href="/static/style.css"/>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+  <style>
+    .garage-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:2rem; flex-wrap:wrap; gap:12px; }
+    .garage-title { font-family:'Bebas Neue',sans-serif; font-size:2rem; letter-spacing:3px; color:#fff; }
+    .garage-title span { color:var(--accent2); text-shadow:0 0 12px rgba(0,240,255,.4); }
+    .user-pill { display:flex; align-items:center; gap:10px; background:var(--surface); border:1px solid rgba(0,240,255,.15); border-radius:30px; padding:6px 14px 6px 6px; }
+    .user-pill-avatar { width:32px; height:32px; border-radius:50%; background:var(--accent2); color:#050810; font-weight:700; font-size:13px; display:flex; align-items:center; justify-content:center; }
+    .user-pill-name { font-size:13px; font-weight:500; color:var(--text); }
+    .user-pill-out { background:none; border:none; color:var(--muted); font-size:12px; font-family:'Inter',sans-serif; cursor:pointer; padding:0; transition:color .15s; }
+    .user-pill-out:hover { color:var(--accent); }
+
+    .add-vehicle-form { background:var(--surface); border:1px solid rgba(0,240,255,.15); border-radius:14px; padding:20px; margin-bottom:2rem; }
+    .add-vehicle-form h3 { font-size:13px; font-weight:700; color:var(--text); margin-bottom:14px; display:flex; align-items:center; gap:8px; }
+    .add-form-row { display:flex; gap:10px; flex-wrap:wrap; }
+    .add-form-row input {
+      background:var(--surface2); border:1px solid var(--border); color:var(--text);
+      padding:10px 14px; border-radius:8px; font-size:13px; font-family:'Inter',sans-serif;
+      outline:none; transition:border-color .2s;
+    }
+    .add-form-row input:focus { border-color:var(--accent2); }
+    .add-form-row input#add-plate { font-family:'Bebas Neue',sans-serif; font-size:1.2rem; letter-spacing:4px; text-transform:uppercase; width:160px; }
+    .add-form-row input#add-nickname { flex:1; min-width:120px; }
+    .btn-add { background:var(--accent2); border:none; color:#050810; font-size:12px; font-weight:700; font-family:'Inter',sans-serif; padding:10px 20px; border-radius:8px; cursor:pointer; box-shadow:0 0 12px rgba(0,240,255,.25); transition:box-shadow .2s; white-space:nowrap; }
+    .btn-add:hover { box-shadow:0 0 20px rgba(0,240,255,.45); }
+
+    .vehicles-grid { display:flex; flex-direction:column; gap:16px; }
+    .vehicle-block { background:var(--surface); border:1px solid var(--border); border-radius:14px; overflow:hidden; transition:border-color .2s; }
+    .vehicle-block:hover { border-color:rgba(0,240,255,.2); }
+
+    .vb-header { display:flex; align-items:center; gap:14px; padding:16px 20px; cursor:pointer; }
+    .vb-plate { font-family:'Bebas Neue',sans-serif; font-size:1rem; letter-spacing:4px; color:var(--accent2); background:rgba(0,240,255,.08); border:1px solid rgba(0,240,255,.2); border-radius:6px; padding:3px 10px; flex-shrink:0; }
+    .vb-name { font-size:14px; font-weight:600; color:var(--text); flex:1; }
+    .vb-nickname { font-size:11px; color:var(--muted); }
+    .vb-counts { display:flex; gap:10px; font-size:11px; color:var(--muted); flex-shrink:0; }
+    .vb-count { background:var(--surface2); border:1px solid var(--border); border-radius:20px; padding:2px 10px; }
+    .vb-del { background:none; border:none; color:var(--muted); font-size:16px; cursor:pointer; padding:4px; border-radius:4px; transition:color .15s; }
+    .vb-del:hover { color:var(--accent); }
+    .vb-chevron { color:var(--muted); font-size:12px; transition:transform .2s; }
+    .vb-chevron.open { transform:rotate(90deg); }
+
+    .vb-body { border-top:1px solid var(--border); padding:16px 20px; display:none; }
+    .vb-body.open { display:block; }
+
+    .vb-tabs { display:flex; gap:4px; margin-bottom:14px; }
+    .vb-tab { padding:5px 14px; border-radius:6px; border:1px solid var(--border); background:transparent; color:var(--muted); font-size:11px; font-weight:600; font-family:'Inter',sans-serif; cursor:pointer; transition:all .15s; }
+    .vb-tab.active { background:rgba(0,240,255,.1); border-color:rgba(0,240,255,.25); color:var(--accent2); }
+
+    .diag-list { display:flex; flex-direction:column; gap:8px; }
+    .diag-item { background:var(--surface2); border:1px solid var(--border); border-radius:8px; padding:10px 14px; }
+    .diag-item-date { font-size:10px; color:var(--muted); margin-bottom:4px; }
+    .diag-item-sym { font-size:12px; color:var(--accent2); font-weight:600; margin-bottom:4px; }
+    .diag-item-res { font-size:12px; color:#7a96b4; line-height:1.5; max-height:60px; overflow:hidden; text-overflow:ellipsis; display:-webkit-box; -webkit-line-clamp:3; line-clamp:3; -webkit-box-orient:vertical; }
+
+    .notes-area { display:flex; flex-direction:column; gap:8px; }
+    .note-item { background:var(--surface2); border:1px solid var(--border); border-radius:8px; padding:10px 14px; display:flex; align-items:flex-start; justify-content:space-between; gap:10px; }
+    .note-text { font-size:12px; color:#7a96b4; line-height:1.5; flex:1; white-space:pre-wrap; }
+    .note-date { font-size:10px; color:var(--muted); flex-shrink:0; }
+    .note-del { background:none; border:none; color:var(--muted); font-size:13px; cursor:pointer; flex-shrink:0; }
+    .note-del:hover { color:var(--accent); }
+    .add-note-row { display:flex; gap:8px; margin-top:8px; }
+    .add-note-row textarea {
+      flex:1; background:var(--surface2); border:1px solid var(--border); color:var(--text);
+      padding:9px 12px; border-radius:8px; font-size:12px; font-family:'Inter',sans-serif;
+      outline:none; resize:none; height:60px; transition:border-color .2s;
+    }
+    .add-note-row textarea:focus { border-color:var(--accent2); }
+    .btn-note { background:var(--accent2); border:none; color:#050810; font-size:11px; font-weight:700; font-family:'Inter',sans-serif; padding:8px 14px; border-radius:8px; cursor:pointer; align-self:flex-end; box-shadow:0 0 8px rgba(0,240,255,.2); }
+
+    .empty-state { text-align:center; padding:3rem 2rem; color:var(--muted); }
+    .empty-icon { font-size:48px; opacity:.4; margin-bottom:12px; }
+    .empty-title { font-size:16px; font-weight:600; color:var(--text); opacity:.5; margin-bottom:6px; }
+
+    .loading-dots { display:flex; gap:6px; justify-content:center; padding:3rem; }
+    .loading-dots span { width:8px; height:8px; border-radius:50%; background:var(--accent2); animation:bounce 1.2s ease-in-out infinite; }
+    .loading-dots span:nth-child(2) { animation-delay:.2s; }
+    .loading-dots span:nth-child(3) { animation-delay:.4s; }
+  </style>
+</head>
+<body>
+
+  <nav class="topbar">
+    <span class="logo">DDS<span>GARAGE</span></span>
+    <div class="nav-links">
+      <a href="/diagnostic" class="nav-link">Diagnostic</a>
+      <a href="/tuning" class="nav-link">Tuning</a>
+      <a href="/historique" class="nav-link">Historique</a>
+      <a href="/garage" class="nav-link nav-link-active">Mon Garage</a>
+    </div>
+  </nav>
+
+  <main>
+
+    <div class="garage-header">
+      <div class="garage-title">Mon <span>Garage</span></div>
+      <div class="user-pill" id="user-pill">
+        <div class="user-pill-avatar" id="user-avatar">?</div>
+        <span class="user-pill-name" id="user-name">…</span>
+        <button class="user-pill-out" onclick="signOut()">Déconnexion</button>
+      </div>
+    </div>
+
+    <!-- ADD VEHICLE -->
+    <div class="add-vehicle-form">
+      <h3>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+        Ajouter un véhicule
+      </h3>
+      <div class="add-form-row">
+        <input type="text" id="add-plate" placeholder="AA-123-BB" maxlength="10" autocapitalize="characters"/>
+        <input type="text" id="add-nickname" placeholder="Surnom (ex: Ma Clio)"/>
+        <button class="btn-add" onclick="addVehicle()">Ajouter</button>
+      </div>
+      <div id="add-error" style="font-size:12px;color:#f87171;margin-top:8px;display:none"></div>
+    </div>
+
+    <!-- VEHICLES -->
+    <div id="loading" class="loading-dots"><span></span><span></span><span></span></div>
+    <div id="vehicles-list" class="vehicles-grid" style="display:none"></div>
+    <div id="empty-state" class="empty-state" style="display:none">
+      <div class="empty-icon">🚗</div>
+      <div class="empty-title">Ton garage est vide</div>
+      <p>Ajoute ton premier véhicule avec sa plaque d'immatriculation.</p>
+    </div>
+
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script>
+    const SB_URL  = 'https://oakhuffubspawhqtbigv.supabase.co';
+    const SB_ANON = 'sb_publishable_CVs7EnDiKwVB87nrB-QFNw_sVb2bDzy';
+    const _sb = window.supabase.createClient(SB_URL, SB_ANON);
+
+    let currentUser = null;
+    let openTabs = {};
+
+    async function init() {
+      const { data: { session } } = await _sb.auth.getSession();
+      if (!session) { window.location.href = '/login'; return; }
+      currentUser = session.user;
+
+      const name = currentUser.user_metadata?.full_name || currentUser.email?.split('@')[0] || 'Utilisateur';
+      document.getElementById('user-avatar').textContent = name.charAt(0).toUpperCase();
+      document.getElementById('user-name').textContent = name;
+
+      await loadVehicles();
+    }
+
+    async function loadVehicles() {
+      document.getElementById('loading').style.display = 'flex';
+      document.getElementById('vehicles-list').style.display = 'none';
+      document.getElementById('empty-state').style.display = 'none';
+
+      const { data: vehicles, error } = await _sb.from('vehicles').select('*').eq('user_id', currentUser.id).order('created_at', { ascending: false });
+      document.getElementById('loading').style.display = 'none';
+
+      if (!vehicles || vehicles.length === 0) {
+        document.getElementById('empty-state').style.display = 'block';
+        return;
+      }
+      document.getElementById('vehicles-list').style.display = 'flex';
+      document.getElementById('vehicles-list').innerHTML = '';
+      vehicles.forEach(v => renderVehicle(v));
+    }
+
+    function renderVehicle(v) {
+      const data = v.vehicle_data || {};
+      const label = data.label && data.label !== '—' ? data.label : `${data.marque||''} ${data.modele||''}`.trim() || v.plate;
+      const block = document.createElement('div');
+      block.className = 'vehicle-block';
+      block.id = 'vblock-' + v.id;
+      block.innerHTML = `
+        <div class="vb-header" onclick="toggleVehicle('${v.id}')">
+          <div class="vb-plate">${esc(v.plate)}</div>
+          <div class="vb-name">
+            ${esc(label)}
+            ${v.nickname ? `<div class="vb-nickname">${esc(v.nickname)}</div>` : ''}
+          </div>
+          <div class="vb-counts">
+            <span class="vb-count" id="diag-count-${v.id}">…</span>
+            <span class="vb-count" id="note-count-${v.id}">…</span>
+          </div>
+          <button class="vb-del" onclick="event.stopPropagation(); deleteVehicle('${v.id}')">✕</button>
+          <span class="vb-chevron" id="chev-${v.id}">›</span>
+        </div>
+        <div class="vb-body" id="vbody-${v.id}">
+          <div class="vb-tabs">
+            <button class="vb-tab active" id="tab-diag-${v.id}" onclick="switchVbTab('${v.id}','diag')">Diagnostics</button>
+            <button class="vb-tab" id="tab-notes-${v.id}" onclick="switchVbTab('${v.id}','notes')">Notes</button>
+          </div>
+          <div id="panel-diag-${v.id}"><div class="loading-dots"><span></span><span></span><span></span></div></div>
+          <div id="panel-notes-${v.id}" style="display:none"><div class="loading-dots"><span></span><span></span><span></span></div></div>
+        </div>
+      `;
+      document.getElementById('vehicles-list').appendChild(block);
+      loadCounts(v.id);
+    }
+
+    async function loadCounts(vid) {
+      const [d, n] = await Promise.all([
+        _sb.from('diagnostics').select('id', {count:'exact',head:true}).eq('vehicle_id', vid),
+        _sb.from('notes').select('id', {count:'exact',head:true}).eq('vehicle_id', vid)
+      ]);
+      document.getElementById(`diag-count-${vid}`).textContent = `🔍 ${d.count||0} diagnostic${d.count!==1?'s':''}`;
+      document.getElementById(`note-count-${vid}`).textContent = `📝 ${n.count||0} note${n.count!==1?'s':''}`;
+    }
+
+    async function toggleVehicle(vid) {
+      const body = document.getElementById(`vbody-${vid}`);
+      const chev = document.getElementById(`chev-${vid}`);
+      const isOpen = body.classList.contains('open');
+      body.classList.toggle('open', !isOpen);
+      chev.classList.toggle('open', !isOpen);
+      if (!isOpen && !openTabs[vid]) {
+        openTabs[vid] = 'diag';
+        await loadDiags(vid);
+        await loadNotes(vid);
+      }
+    }
+
+    function switchVbTab(vid, tab) {
+      openTabs[vid] = tab;
+      document.getElementById(`tab-diag-${vid}`).classList.toggle('active', tab==='diag');
+      document.getElementById(`tab-notes-${vid}`).classList.toggle('active', tab==='notes');
+      document.getElementById(`panel-diag-${vid}`).style.display = tab==='diag' ? '' : 'none';
+      document.getElementById(`panel-notes-${vid}`).style.display = tab==='notes' ? '' : 'none';
+    }
+
+    async function loadDiags(vid) {
+      const { data } = await _sb.from('diagnostics').select('*').eq('vehicle_id', vid).order('created_at', {ascending:false});
+      const panel = document.getElementById(`panel-diag-${vid}`);
+      if (!data || data.length === 0) { panel.innerHTML = '<p style="font-size:12px;color:var(--muted);padding:8px 0">Aucun diagnostic enregistré.</p>'; return; }
+      panel.innerHTML = `<div class="diag-list">${data.map(d => `
+        <div class="diag-item">
+          <div class="diag-item-date">${new Date(d.created_at).toLocaleDateString('fr-FR', {day:'2-digit',month:'short',year:'numeric'})}</div>
+          <div class="diag-item-sym">${esc(d.symptoms||'')}</div>
+          <div class="diag-item-res">${esc(d.result||'')}</div>
+        </div>`).join('')}</div>`;
+    }
+
+    async function loadNotes(vid) {
+      const { data } = await _sb.from('notes').select('*').eq('vehicle_id', vid).order('created_at', {ascending:false});
+      const panel = document.getElementById(`panel-notes-${vid}`);
+      const notesHtml = data && data.length > 0
+        ? data.map(n => `<div class="note-item"><span class="note-text">${esc(n.content)}</span><span class="note-date">${new Date(n.created_at).toLocaleDateString('fr-FR')}</span><button class="note-del" onclick="deleteNote('${n.id}','${vid}')">✕</button></div>`).join('')
+        : '<p style="font-size:12px;color:var(--muted);padding:4px 0">Aucune note.</p>';
+      panel.innerHTML = `<div class="notes-area">${notesHtml}<div class="add-note-row"><textarea id="note-input-${vid}" placeholder="Ajouter une note…"></textarea><button class="btn-note" onclick="addNote('${vid}')">Ajouter</button></div></div>`;
+    }
+
+    async function addNote(vid) {
+      const inp = document.getElementById(`note-input-${vid}`);
+      const content = inp.value.trim();
+      if (!content) return;
+      await _sb.from('notes').insert({ vehicle_id: vid, user_id: currentUser.id, content });
+      inp.value = '';
+      await loadNotes(vid);
+      loadCounts(vid);
+    }
+
+    async function deleteNote(nid, vid) {
+      await _sb.from('notes').delete().eq('id', nid);
+      await loadNotes(vid);
+      loadCounts(vid);
+    }
+
+    async function addVehicle() {
+      const plate = document.getElementById('add-plate').value.trim().toUpperCase().replace(/ /g,'-');
+      const nickname = document.getElementById('add-nickname').value.trim();
+      const errEl = document.getElementById('add-error');
+      errEl.style.display = 'none';
+      if (!plate) { errEl.textContent = 'Entre une plaque.'; errEl.style.display = 'block'; return; }
+
+      // Lookup vehicle data
+      let vehicle_data = {};
+      try {
+        const res = await fetch('/api/plaque', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({plaque: plate}) });
+        const json = await res.json();
+        if (json.success) vehicle_data = json.data;
+      } catch {}
+
+      const { error } = await _sb.from('vehicles').insert({ plate, nickname, vehicle_data, user_id: currentUser.id });
+      if (error) { errEl.textContent = error.message; errEl.style.display = 'block'; return; }
+      document.getElementById('add-plate').value = '';
+      document.getElementById('add-nickname').value = '';
+      openTabs = {};
+      await loadVehicles();
+    }
+
+    async function deleteVehicle(vid) {
+      if (!confirm('Supprimer ce véhicule et tout son historique ?')) return;
+      await _sb.from('diagnostics').delete().eq('vehicle_id', vid);
+      await _sb.from('notes').delete().eq('vehicle_id', vid);
+      await _sb.from('vehicles').delete().eq('id', vid);
+      document.getElementById(`vblock-${vid}`)?.remove();
+      const list = document.getElementById('vehicles-list');
+      if (!list.children.length) { list.style.display='none'; document.getElementById('empty-state').style.display='block'; }
+    }
+
+    async function signOut() {
+      await _sb.auth.signOut();
+      window.location.href = '/';
+    }
+
+    function esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+    init();
+  </script>
+
+</body>
+</html>

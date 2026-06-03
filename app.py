@@ -59,6 +59,14 @@ def historique():
 
 # ── Admin auth ─────────────────────────────────────────────────────────────
 
+@app.route("/login")
+def login():
+    return render_template("login.html")
+
+@app.route("/garage")
+def garage():
+    return render_template("garage.html")
+
 @app.route("/admin/login", methods=["GET", "POST"])
 def admin_login():
     if session.get('admin'):
