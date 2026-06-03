@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>DDS GARAGE — Historique Véhicule</title>
+  <link rel="stylesheet" href="/static/style.css"/>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+</head>
+<body>
+
+  <nav class="topbar">
+    <span class="logo">DDS<span>GARAGE</span></span>
+    <div class="nav-links">
+      <a href="/diagnostic" class="nav-link">Diagnostic</a>
+      <a href="/tuning" class="nav-link">Tuning</a>
+      <a href="/historique" class="nav-link nav-link-active">Historique</a>
+    </div>
+  </nav>
+
+  <main>
+
+    <section class="hero">
+      <h1>Historique du Véhicule</h1>
+      <p class="hero-sub">Identifiez le véhicule par sa plaque puis consultez son historique officiel via Histovec — le service gratuit du gouvernement français.</p>
+      <div class="search-wrap">
+        <div class="search-inner">
+          <div class="plate-icon">🇫🇷</div>
+          <input type="text" id="plaque-input" placeholder="AA-123-BB" maxlength="10"
+            autocomplete="off" autocapitalize="characters"/>
+          <button onclick="rechercherPlaque()">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+            Rechercher
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <div id="loader" class="loader hidden">
+      <div class="spinner"></div>
+      <span>Identification en cours…</span>
+    </div>
+    <div id="error-box" class="alert-error hidden"></div>
+
+    <!-- RÉSULTATS -->
+    <div id="results" class="hidden">
+
+      <!-- CARTE VÉHICULE -->
+      <section id="result-card" class="vehicle-card" style="margin-bottom:2rem">
+        <div class="vc-top">
+          <div class="vc-identity">
+            <div class="vc-label" id="res-label"></div>
+            <div class="vc-sub">
+              <span class="plaque-chip" id="res-plaque"></span>
+              <span class="energie-chip" id="res-energie-chip"></span>
+            </div>
+          </div>
+          <div class="vc-stats">
+            <div class="stat"><span id="res-puissance">—</span><label>chevaux</label></div>
+            <div class="stat"><span id="res-date">—</span><label>mise en circ.</label></div>
+            <div class="stat"><span id="res-cylindree">—</span><label>cm³</label></div>
+          </div>
+        </div>
+        <div class="vc-grid">
+          <div class="vc-item"><label>Boîte</label><span id="res-boite"></span></div>
+          <div class="vc-item"><label>Carrosserie</label><span id="res-carrosserie"></span></div>
+          <div class="vc-item"><label>Couleur</label><span id="res-couleur"></span></div>
+          <div class="vc-item"><label>Places</label><span id="res-places"></span></div>
+          <div class="vc-item"><label>Portes</label><span id="res-portes"></span></div>
+          <div class="vc-item"><label>CO₂</label><span id="res-co2"></span></div>
+        </div>
+      </section>
+
+      <!-- HISTOVEC -->
+      <section class="hist-block">
+
+        <div class="hist-block-header">
+          <div class="hist-block-title">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+            Historique Officiel — Histovec
+          </div>
+          <p class="hist-block-sub">Service gratuit du Ministère de l'Intérieur. Affiche les contrôles techniques, le nombre de propriétaires et la situation administrative du véhicule.</p>
+        </div>
+
+        <!-- BOUTON PRINCIPAL -->
+        <a id="histovec-btn" href="#" target="_blank" rel="noopener" class="histovec-main-btn">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+          Voir l'historique sur Histovec
+          <span class="histovec-official-tag">Officiel</span>
+        </a>
+
+        <div class="hist-how">
+          <div class="hist-how-title">Comment ça marche ?</div>
+          <div class="hist-steps">
+            <div class="hist-step">
+              <div class="hist-step-num">1</div>
+              <div class="hist-step-text">Le lien s'ouvre sur <strong>histovec.interieur.gouv.fr</strong> avec la plaque pré-remplie</div>
+            </div>
+            <div class="hist-step">
+              <div class="hist-step-num">2</div>
+              <div class="hist-step-text">Si tu es le <strong>propriétaire</strong> : connecte-toi avec ton nom, prénom, date de naissance</div>
+            </div>
+            <div class="hist-step">
+              <div class="hist-step-num">3</div>
+              <div class="hist-step-text">Si tu es <strong>acheteur</strong> : demande au vendeur de générer un lien de partage depuis Histovec et colle-le ci-dessous</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- CODE DE PARTAGE VENDEUR -->
+        <div class="hist-share-section">
+          <div class="hist-share-label">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+            Le vendeur t'a fourni un lien Histovec ?
+          </div>
+          <div class="hist-share-input-row">
+            <input type="text" id="share-link-input" placeholder="Colle le lien Histovec du vendeur ici…" autocomplete="off"/>
+            <button onclick="ouvrirLienPartage()">Ouvrir</button>
+          </div>
+        </div>
+
+      </section>
+
+      <!-- CE QUE MONTRE HISTOVEC -->
+      <section class="hist-info-grid">
+        <div class="hist-info-card hi-green">
+          <div class="hi-icon">✅</div>
+          <div class="hi-title">Contrôles techniques</div>
+          <div class="hi-desc">Dates, résultats et points de défaillance de chaque CT effectué en France</div>
+        </div>
+        <div class="hist-info-card hi-blue">
+          <div class="hi-icon">👤</div>
+          <div class="hi-title">Nombre de propriétaires</div>
+          <div class="hi-desc">Historique des immatriculations et changements de titulaires</div>
+        </div>
+        <div class="hist-info-card hi-orange">
+          <div class="hi-icon">📋</div>
+          <div class="hi-title">Situation administrative</div>
+          <div class="hi-desc">Véhicule volé, gagé, déclaré épave, en opposition — tout est vérifié</div>
+        </div>
+        <div class="hist-info-card hi-purple">
+          <div class="hi-icon">🔧</div>
+          <div class="hi-title">Données techniques SIV</div>
+          <div class="hi-desc">Toutes les caractéristiques officielles du Système d'Immatriculation des Véhicules</div>
+        </div>
+      </section>
+
+    </div>
+
+  </main>
+
+  <footer class="site-footer">
+    <span>Inspiré par</span>
+    <a href="https://www.youtube.com/@maclede12" target="_blank" rel="noopener" class="yt-link">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M23.5 6.2a3 3 0 0 0-2.1-2.1C19.5 3.6 12 3.6 12 3.6s-7.5 0-9.4.5A3 3 0 0 0 .5 6.2 31 31 0 0 0 0 12a31 31 0 0 0 .5 5.8 3 3 0 0 0 2.1 2.1c1.9.5 9.4.5 9.4.5s7.5 0 9.4-.5a3 3 0 0 0 2.1-2.1A31 31 0 0 0 24 12a31 31 0 0 0-.5-5.8z"/><polygon points="9.7 15.5 15.8 12 9.7 8.5 9.7 15.5" fill="#080c10"/></svg>
+      Ma Clé de Douze
+    </a>
+  </footer>
+
+  <script>
+    let plaqueFormatee = "";
+
+    document.getElementById("plaque-input").addEventListener("keydown", e => {
+      if (e.key === "Enter") rechercherPlaque();
+    });
+
+    async function rechercherPlaque() {
+      const input = document.getElementById("plaque-input").value.trim();
+      if (!input) return;
+
+      hide("results");
+      hide("error-box");
+      show("loader");
+
+      try {
+        const res = await fetch("/api/plaque", {
+          method: "POST",
+          headers: {"Content-Type": "application/json"},
+          body: JSON.stringify({plaque: input})
+        });
+        const json = await res.json();
+        hide("loader");
+        if (!json.success) { showError(json.error || "Plaque introuvable"); return; }
+
+        plaqueFormatee = json.plaque;
+        const d = json.data;
+
+        setText("res-label", d.label !== "—" ? d.label : `${d.marque} ${d.modele} ${d.version}`);
+        setText("res-plaque", json.plaque);
+        setText("res-energie-chip", d.energie);
+        setText("res-puissance", d.puissance_cv !== "—" ? d.puissance_cv : "—");
+        setText("res-date", d.date_mec);
+        setText("res-cylindree", d.cylindree !== "—" ? d.cylindree : "—");
+        setText("res-boite", d.boite);
+        setText("res-carrosserie", d.carrosserie);
+        setText("res-couleur", d.couleur);
+        setText("res-places", d.nb_places);
+        setText("res-portes", d.nb_portes);
+        setText("res-co2", d.co2 !== "—" ? d.co2 + " g/km" : "—");
+
+        // Lien Histovec avec plaque pré-remplie
+        const plaqueSanstirets = json.plaque.replace(/-/g, "");
+        document.getElementById("histovec-btn").href =
+          `https://histovec.interieur.gouv.fr/?immat=${encodeURIComponent(plaqueSanstirets)}`;
+
+        show("results");
+
+      } catch {
+        hide("loader");
+        showError("Erreur de connexion");
+      }
+    }
+
+    function ouvrirLienPartage() {
+      const link = document.getElementById("share-link-input").value.trim();
+      if (!link) return;
+      if (!link.startsWith("http")) {
+        alert("Lien invalide — colle le lien complet fourni par le vendeur.");
+        return;
+      }
+      window.open(link, "_blank", "noopener");
+    }
+
+    const setText = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v; };
+    const show = id => document.getElementById(id).classList.remove("hidden");
+    const hide = id => document.getElementById(id).classList.add("hidden");
+    const showError = msg => { setText("error-box", "❌ " + msg); show("error-box"); };
+  </script>
+
+  <!-- LIVE CHAT WIDGET -->
+  <div id="lc-widget">
+    <div id="lc-panel" class="lc-panel lc-hidden">
+      <div class="lc-header">
+        <div class="lc-header-left">
+          <div class="lc-status-dot" id="lc-dot"></div>
+          <div><div class="lc-header-name">DDS Garage — Support</div><div class="lc-header-sub" id="lc-sub">Connexion…</div></div>
+        </div>
+        <button class="lc-close" onclick="lcToggle()">✕</button>
+      </div>
+      <div id="lc-name-screen" class="lc-name-screen">
+        <div class="lc-welcome-icon">🔧</div>
+        <div class="lc-welcome-text">Bienvenue chez DDS Garage !<br/>Entrez votre prénom pour démarrer.</div>
+        <input type="text" id="lc-name-input" class="lc-name-input" placeholder="Votre prénom…" maxlength="30" onkeydown="if(event.key==='Enter')lcSetName()"/>
+        <button class="lc-name-btn" onclick="lcSetName()">Démarrer le chat</button>
+      </div>
+      <div id="lc-chat-screen" class="lc-chat-screen lc-hidden">
+        <div id="lc-messages" class="lc-messages"><div class="lc-welcome-msg">👋 Bonjour ! Notre mécanicien va vous répondre dès que possible.</div></div>
+        <div id="lc-typing" class="lc-typing-indicator lc-hidden"><div class="lc-typing-dots"><span></span><span></span><span></span></div><span>en train d'écrire…</span></div>
+        <div id="lc-attach-preview" class="lc-attach-preview lc-hidden">
+          <img id="lc-attach-thumb" src="" alt=""/>
+          <span id="lc-attach-name" class="lc-attach-name"></span>
+          <button onclick="lcCancelAttach()" class="lc-attach-cancel">✕</button>
+        </div>
+        <div class="lc-input-row">
+          <input type="file" id="lc-file-input" accept="image/*,.pdf,.doc,.docx" style="display:none" onchange="lcFileSelected(event)"/>
+          <button class="lc-attach-btn" onclick="document.getElementById('lc-file-input').click()" title="Photo / Fichier">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m21.44 11.05-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>
+          </button>
+          <input type="text" id="lc-input" placeholder="Votre message…" onkeydown="if(event.key==='Enter')lcSend()"/>
+          <button class="lc-send-btn" onclick="lcSend()"><svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="m22 2-7 20-4-9-9-4z"/></svg></button>
+        </div>
+      </div>
+    </div>
+    <button class="lc-fab" onclick="lcToggle()">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+      <span class="lc-fab-badge lc-hidden" id="lc-badge">1</span>
+    </button>
+  </div>
+  <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+  <script src="/static/livechat.js"></script>
+</body>
+</html>

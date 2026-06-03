@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>DDS GARAGE — Tuning & Performance</title>
+  <link rel="stylesheet" href="/static/style.css"/>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+</head>
+<body>
+
+  <nav class="topbar">
+    <span class="logo">DDS<span>GARAGE</span></span>
+    <div class="nav-links">
+      <a href="/diagnostic" class="nav-link">Diagnostic</a>
+      <a href="/tuning" class="nav-link nav-link-active">Tuning</a>
+      <a href="/historique" class="nav-link">Historique</a>
+    </div>
+  </nav>
+
+  <main>
+
+    <!-- HERO + SEARCH -->
+    <section class="hero">
+      <h1>Tuning & Performance</h1>
+      <p class="hero-sub">Entrez une plaque d'immatriculation française — l'IA génère les pièces recommandées et les gains de reprogrammation pour votre véhicule exact.</p>
+      <div class="search-wrap">
+        <div class="search-inner">
+          <div class="plate-icon">🇫🇷</div>
+          <input
+            type="text"
+            id="plaque-input"
+            placeholder="AA-123-BB"
+            maxlength="10"
+            autocomplete="off"
+            autocapitalize="characters"
+          />
+          <button onclick="rechercherPlaque()">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+            Analyser
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <div id="loader" class="loader hidden">
+      <div class="spinner"></div>
+      <span>Identification du véhicule…</span>
+    </div>
+    <div id="error-box" class="alert-error hidden"></div>
+
+    <!-- VEHICLE BAR -->
+    <div id="vehicle-bar" class="vehicle-bar hidden">
+      <div class="vbar-info">
+        <span class="vbar-name" id="vbar-name"></span>
+        <span class="plaque-chip" id="vbar-plaque"></span>
+        <span class="energie-chip" id="vbar-energie"></span>
+        <span class="vbar-cv" id="vbar-cv"></span>
+      </div>
+      <button class="vbar-reset" onclick="resetVehicule()">Changer de véhicule</button>
+    </div>
+
+    <!-- TUNING LOADER -->
+    <div id="tuning-loader" class="tuning-gen-loader hidden">
+      <div class="diag-dots"><span></span><span></span><span></span></div>
+      <span>Génération des recommandations tuning pour votre véhicule…</span>
+    </div>
+    <div id="tuning-error" class="alert-error hidden"></div>
+
+    <!-- RESULTS -->
+    <div id="tuning-results" class="hidden">
+
+      <!-- PIÈCES -->
+      <section class="tuning-block">
+        <div class="block-header">
+          <h2 class="block-title">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
+            Pièces & Équipements
+          </h2>
+          <p class="block-sub" id="pieces-sub"></p>
+        </div>
+        <div class="cat-tabs" id="cat-tabs"></div>
+        <div class="parts-grid" id="parts-grid"></div>
+      </section>
+
+      <!-- REPROGRAMMATION -->
+      <section class="tuning-block">
+        <div class="block-header">
+          <h2 class="block-title">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+            Reprogrammation Moteur
+          </h2>
+          <p class="block-sub" id="reprog-sub"></p>
+        </div>
+        <div id="reprog-note" class="reprog-note hidden"></div>
+        <div class="stage-grid" id="stage-grid"></div>
+      </section>
+
+    </div>
+
+  </main>
+
+  <footer class="site-footer">
+    <span>Inspiré par</span>
+    <a href="https://www.youtube.com/@maclede12" target="_blank" rel="noopener" class="yt-link">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M23.5 6.2a3 3 0 0 0-2.1-2.1C19.5 3.6 12 3.6 12 3.6s-7.5 0-9.4.5A3 3 0 0 0 .5 6.2 31 31 0 0 0 0 12a31 31 0 0 0 .5 5.8 3 3 0 0 0 2.1 2.1c1.9.5 9.4.5 9.4.5s7.5 0 9.4-.5a3 3 0 0 0 2.1-2.1A31 31 0 0 0 24 12a31 31 0 0 0-.5-5.8z"/><polygon points="9.7 15.5 15.8 12 9.7 8.5 9.7 15.5" fill="#080c10"/></svg>
+      Ma Clé de Douze
+    </a>
+  </footer>
+
+  <script>
+    let vehiculeData = null;
+
+    const catLabels = {
+      echappement: "Échappement",
+      admission: "Admission",
+      suspension: "Suspension",
+      freins: "Freins",
+      jantes: "Jantes",
+      moteur: "Moteur"
+    };
+
+    const stageInfo = {
+      1: { cls: "stage-1", badge: "s1-badge", link: "s1-link" },
+      2: { cls: "stage-2", badge: "s2-badge", link: "s2-link" },
+      3: { cls: "stage-3", badge: "s3-badge", link: "s3-link" }
+    };
+
+    document.getElementById("plaque-input").addEventListener("keydown", e => {
+      if (e.key === "Enter") rechercherPlaque();
+    });
+
+    async function rechercherPlaque() {
+      const input = document.getElementById("plaque-input").value.trim();
+      if (!input) return;
+
+      vehiculeData = null;
+      hide("vehicle-bar");
+      hide("tuning-results");
+      hide("tuning-error");
+      hide("error-box");
+      show("loader");
+
+      try {
+        const res = await fetch("/api/plaque", {
+          method: "POST",
+          headers: {"Content-Type": "application/json"},
+          body: JSON.stringify({plaque: input})
+        });
+        const json = await res.json();
+        hide("loader");
+
+        if (!json.success) { showError(json.error || "Plaque introuvable"); return; }
+
+        vehiculeData = json.data;
+        const d = json.data;
+        const label = d.label !== "—" ? d.label : `${d.marque} ${d.modele} ${d.version}`;
+
+        setText("vbar-name", label);
+        setText("vbar-plaque", json.plaque);
+        setText("vbar-energie", d.energie);
+        const cv = d.puissance_cv !== "—" ? d.puissance_cv + " ch" : "";
+        setText("vbar-cv", cv);
+        show("vehicle-bar");
+
+        lancerAnalyseTuning();
+
+      } catch {
+        hide("loader");
+        showError("Erreur de connexion");
+      }
+    }
+
+    async function lancerAnalyseTuning() {
+      hide("tuning-results");
+      hide("tuning-error");
+      show("tuning-loader");
+
+      try {
+        const res = await fetch("/api/tuning", {
+          method: "POST",
+          headers: {"Content-Type": "application/json"},
+          body: JSON.stringify({vehicule: vehiculeData})
+        });
+        const json = await res.json();
+        hide("tuning-loader");
+
+        if (!json.success) {
+          showTuningError(json.error || "Erreur analyse tuning");
+          return;
+        }
+
+        renderTuning(json.data);
+        show("tuning-results");
+
+      } catch {
+        hide("tuning-loader");
+        showTuningError("Erreur de connexion");
+      }
+    }
+
+    function renderTuning(data) {
+      renderPieces(data.pieces || []);
+      renderReprog(data.reprog || {});
+    }
+
+    function renderPieces(pieces) {
+      const d = vehiculeData;
+      const label = d.label !== "—" ? d.label : `${d.marque} ${d.modele}`;
+      setText("pieces-sub", `Recommandations personnalisées pour ${label} — cliquez pour rechercher la pièce sur Google.`);
+
+      const categories = [...new Set(pieces.map(p => p.categorie))];
+
+      const tabsEl = document.getElementById("cat-tabs");
+      tabsEl.innerHTML = "";
+
+      const allBtn = mkTab("Tous", true, () => filtrerCat("tous", allBtn));
+      tabsEl.appendChild(allBtn);
+      categories.forEach(cat => {
+        const btn = mkTab(catLabels[cat] || cat, false, () => filtrerCat(cat, btn));
+        tabsEl.appendChild(btn);
+      });
+
+      const grid = document.getElementById("parts-grid");
+      grid.innerHTML = "";
+      pieces.forEach(piece => {
+        const url = `https://www.google.com/search?q=${encodeURIComponent(piece.recherche)}`;
+        const marquesHtml = (piece.marques || []).map(m =>
+          `<span class="part-marque-chip">${escHtml(m)}</span>`
+        ).join("");
+
+        const card = document.createElement("a");
+        card.className = "part-card";
+        card.dataset.cat = piece.categorie;
+        card.href = url;
+        card.target = "_blank";
+        card.rel = "noopener";
+        card.innerHTML = `
+          <div class="part-favicon-wrap">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="color:var(--accent2)">
+              <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>
+            </svg>
+          </div>
+          <div class="part-info">
+            <div class="part-cat-tag">${escHtml(catLabels[piece.categorie] || piece.categorie)}</div>
+            <div class="part-name">${escHtml(piece.nom)}</div>
+            <div class="part-marques">${marquesHtml}</div>
+            <div class="part-desc">${escHtml(piece.description)}</div>
+          </div>
+          <div class="part-arrow">→</div>
+        `;
+        grid.appendChild(card);
+      });
+    }
+
+    function mkTab(label, active, fn) {
+      const btn = document.createElement("button");
+      btn.className = "cat-tab" + (active ? " cat-tab-active" : "");
+      btn.textContent = label;
+      btn.onclick = fn;
+      return btn;
+    }
+
+    function filtrerCat(cat, btn) {
+      document.querySelectorAll(".cat-tab").forEach(t => t.classList.remove("cat-tab-active"));
+      btn.classList.add("cat-tab-active");
+      document.querySelectorAll(".part-card").forEach(card => {
+        card.style.display = (cat === "tous" || card.dataset.cat === cat) ? "" : "none";
+      });
+    }
+
+    function renderReprog(reprog) {
+      const d = vehiculeData;
+      const label = d.label !== "—" ? d.label : `${d.marque} ${d.modele}`;
+      const po = reprog.puissance_origine || "—";
+      const co = reprog.couple_origine || "—";
+      setText("reprog-sub", `${label} — ${po} ch / ${co} Nm en configuration d'origine`);
+
+      const noteEl = document.getElementById("reprog-note");
+      if (reprog.note) {
+        noteEl.textContent = "ℹ️ " + reprog.note;
+        show("reprog-note");
+      } else {
+        hide("reprog-note");
+      }
+
+      const grid = document.getElementById("stage-grid");
+      grid.innerHTML = "";
+
+      (reprog.stages || []).forEach(stage => {
+        const c = stageInfo[stage.numero] || stageInfo[1];
+        const q = `reprogrammation stage ${stage.numero} ${label} france devis prestataire`;
+        const url = `https://www.google.com/search?q=${encodeURIComponent(q)}`;
+
+        const card = document.createElement("div");
+        card.className = `stage-card ${c.cls}`;
+        card.innerHTML = `
+          <div class="stage-top">
+            <div class="stage-badge ${c.badge}">STAGE ${stage.numero}</div>
+            <div class="stage-gain">${escHtml(stage.puissance_apres)} ch</div>
+          </div>
+          <div class="stage-name">${escHtml(stage.description)}</div>
+          <div class="stage-specs">
+            <div class="stage-spec">
+              <span class="spec-label">Puissance</span>
+              <span class="spec-val">${po} → ${escHtml(stage.puissance_apres)} ch</span>
+            </div>
+            <div class="stage-spec">
+              <span class="spec-label">Couple</span>
+              <span class="spec-val">${co} → ${escHtml(stage.couple_apres)} Nm</span>
+            </div>
+            <div class="stage-spec">
+              <span class="spec-label">Prix estimé</span>
+              <span class="spec-val">${escHtml(stage.prix)} €</span>
+            </div>
+            <div class="stage-spec">
+              <span class="spec-label">Mods requises</span>
+              <span class="spec-val">${escHtml(stage.mods_requises)}</span>
+            </div>
+          </div>
+          <a href="${url}" target="_blank" rel="noopener" class="stage-link ${c.link}">
+            Trouver un prestataire Stage ${stage.numero}
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+          </a>
+        `;
+        grid.appendChild(card);
+      });
+    }
+
+    function resetVehicule() {
+      vehiculeData = null;
+      hide("vehicle-bar");
+      hide("tuning-results");
+      hide("tuning-error");
+      document.getElementById("plaque-input").value = "";
+      document.getElementById("plaque-input").focus();
+    }
+
+    function escHtml(s) {
+      return String(s || "").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+    }
+
+    const setText = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v; };
+    const show = id => document.getElementById(id).classList.remove("hidden");
+    const hide = id => document.getElementById(id).classList.add("hidden");
+    const showError = msg => { setText("error-box", "❌ " + msg); show("error-box"); };
+    const showTuningError = msg => { setText("tuning-error", "❌ " + msg); show("tuning-error"); };
+  </script>
+
+  <!-- LIVE CHAT WIDGET -->
+  <div id="lc-widget">
+    <div id="lc-panel" class="lc-panel lc-hidden">
+      <div class="lc-header">
+        <div class="lc-header-left">
+          <div class="lc-status-dot" id="lc-dot"></div>
+          <div><div class="lc-header-name">DDS Garage — Support</div><div class="lc-header-sub" id="lc-sub">Connexion…</div></div>
+        </div>
+        <button class="lc-close" onclick="lcToggle()">✕</button>
+      </div>
+      <div id="lc-name-screen" class="lc-name-screen">
+        <div class="lc-welcome-icon">🔧</div>
+        <div class="lc-welcome-text">Bienvenue chez DDS Garage !<br/>Entrez votre prénom pour démarrer.</div>
+        <input type="text" id="lc-name-input" class="lc-name-input" placeholder="Votre prénom…" maxlength="30" onkeydown="if(event.key==='Enter')lcSetName()"/>
+        <button class="lc-name-btn" onclick="lcSetName()">Démarrer le chat</button>
+      </div>
+      <div id="lc-chat-screen" class="lc-chat-screen lc-hidden">
+        <div id="lc-messages" class="lc-messages"><div class="lc-welcome-msg">👋 Bonjour ! Notre mécanicien va vous répondre dès que possible.</div></div>
+        <div id="lc-typing" class="lc-typing-indicator lc-hidden"><div class="lc-typing-dots"><span></span><span></span><span></span></div><span>en train d'écrire…</span></div>
+        <div id="lc-attach-preview" class="lc-attach-preview lc-hidden">
+          <img id="lc-attach-thumb" src="" alt=""/>
+          <span id="lc-attach-name" class="lc-attach-name"></span>
+          <button onclick="lcCancelAttach()" class="lc-attach-cancel">✕</button>
+        </div>
+        <div class="lc-input-row">
+          <input type="file" id="lc-file-input" accept="image/*,.pdf,.doc,.docx" style="display:none" onchange="lcFileSelected(event)"/>
+          <button class="lc-attach-btn" onclick="document.getElementById('lc-file-input').click()" title="Photo / Fichier">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m21.44 11.05-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>
+          </button>
+          <input type="text" id="lc-input" placeholder="Votre message…" onkeydown="if(event.key==='Enter')lcSend()"/>
+          <button class="lc-send-btn" onclick="lcSend()"><svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="m22 2-7 20-4-9-9-4z"/></svg></button>
+        </div>
+      </div>
+    </div>
+    <button class="lc-fab" onclick="lcToggle()">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+      <span class="lc-fab-badge lc-hidden" id="lc-badge">1</span>
+    </button>
+  </div>
+  <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+  <script src="/static/livechat.js"></script>
+</body>
+</html>

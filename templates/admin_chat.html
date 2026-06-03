@@ -1,0 +1,641 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>DDS GARAGE — Admin Chat</title>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --bg: #050810;
+      --surface: #090d16;
+      --surface2: #0d1320;
+      --border: #182035;
+      --accent: #e63946;
+      --accent2: #00f0ff;
+      --text: #dde8f5;
+      --muted: #4d6080;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Inter', sans-serif;
+      font-size: 14px;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      background-image:
+        linear-gradient(rgba(0,240,255,.02) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0,240,255,.02) 1px, transparent 1px);
+      background-size: 60px 60px;
+    }
+
+    /* TOP BAR */
+    .admin-topbar {
+      height: 52px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 1.5rem;
+      background: rgba(5,8,16,.95);
+      border-bottom: 1px solid rgba(0,240,255,.12);
+      box-shadow: 0 1px 20px rgba(0,240,255,.05);
+      flex-shrink: 0;
+    }
+    .admin-logo {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 1.3rem;
+      letter-spacing: 4px;
+      color: #fff;
+    }
+    .admin-logo span { color: var(--accent2); }
+    .admin-tag {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--muted);
+      border: 1px solid var(--border);
+      padding: 3px 10px;
+      border-radius: 4px;
+    }
+    .admin-status {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 12px;
+      color: var(--muted);
+    }
+    .admin-online-dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: var(--muted);
+      transition: background .3s, box-shadow .3s;
+    }
+    .admin-online-dot.online { background: #4ade80; box-shadow: 0 0 7px rgba(74,222,128,.6); }
+
+    /* LAYOUT */
+    .admin-layout {
+      flex: 1;
+      display: grid;
+      grid-template-columns: 280px 1fr;
+      min-height: 0;
+    }
+
+    /* SIDEBAR */
+    .admin-sidebar {
+      border-right: 1px solid rgba(0,240,255,.08);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+    .sidebar-header {
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--border);
+      background: var(--surface2);
+    }
+    .sidebar-title {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+    .sidebar-count {
+      font-size: 11px;
+      color: var(--accent2);
+      margin-top: 2px;
+    }
+    .conv-list {
+      flex: 1;
+      overflow-y: auto;
+    }
+    .conv-list::-webkit-scrollbar { width: 4px; }
+    .conv-list::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+    .conv-empty {
+      padding: 40px 20px;
+      text-align: center;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.7;
+    }
+    .conv-empty-icon { font-size: 32px; margin-bottom: 10px; }
+
+    .conv-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 13px 16px;
+      border-bottom: 1px solid var(--border);
+      cursor: pointer;
+      transition: background .15s;
+    }
+    .conv-item:hover { background: var(--surface2); }
+    .conv-item.active {
+      background: rgba(0,240,255,.07);
+      border-left: 2px solid var(--accent2);
+    }
+    .conv-avatar {
+      width: 36px; height: 36px;
+      border-radius: 50%;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 14px;
+      flex-shrink: 0;
+      position: relative;
+    }
+    .conv-online-dot {
+      position: absolute; bottom: 0; right: 0;
+      width: 10px; height: 10px;
+      border-radius: 50%;
+      border: 2px solid var(--bg);
+      background: var(--muted);
+    }
+    .conv-online-dot.online { background: #4ade80; box-shadow: 0 0 5px rgba(74,222,128,.5); }
+
+    .conv-info { flex: 1; min-width: 0; }
+    .conv-name { font-size: 13px; font-weight: 600; color: var(--text); }
+    .conv-preview {
+      font-size: 11px; color: var(--muted);
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+      margin-top: 2px;
+    }
+    .conv-meta { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; }
+    .conv-time { font-size: 10px; color: var(--muted); }
+    .conv-unread {
+      width: 18px; height: 18px;
+      border-radius: 50%;
+      background: var(--accent);
+      color: #fff; font-size: 10px; font-weight: 700;
+      display: flex; align-items: center; justify-content: center;
+      box-shadow: 0 0 8px rgba(230,57,70,.5);
+    }
+
+    /* CHAT AREA */
+    .admin-chat {
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .chat-empty-state {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      color: var(--muted);
+      text-align: center;
+      padding: 2rem;
+    }
+    .chat-empty-icon { font-size: 48px; opacity: .4; }
+    .chat-empty-title { font-size: 16px; font-weight: 600; color: var(--text); opacity: .5; }
+    .chat-empty-sub { font-size: 13px; line-height: 1.6; }
+
+    .chat-active { display: flex; flex-direction: column; flex: 1; overflow: hidden; }
+
+    .chat-topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 20px;
+      border-bottom: 1px solid var(--border);
+      background: var(--surface2);
+      flex-shrink: 0;
+    }
+    .chat-visitor-info { display: flex; align-items: center; gap: 10px; }
+    .chat-visitor-dot {
+      width: 9px; height: 9px; border-radius: 50%;
+      background: var(--muted); transition: background .3s;
+    }
+    .chat-visitor-dot.online { background: #4ade80; box-shadow: 0 0 7px rgba(74,222,128,.6); }
+    .chat-visitor-name { font-size: 14px; font-weight: 700; color: var(--text); }
+    .chat-visitor-status { font-size: 11px; color: var(--muted); }
+    .chat-visitor-typing { font-size: 11px; color: var(--accent2); display: none; }
+
+    .chat-messages {
+      flex: 1;
+      overflow-y: auto;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .chat-messages::-webkit-scrollbar { width: 4px; }
+    .chat-messages::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+    .chat-msg { display: flex; flex-direction: column; gap: 3px; max-width: 70%; }
+    .chat-msg-visitor { align-self: flex-start; }
+    .chat-msg-admin   { align-self: flex-end; }
+
+    .chat-msg-bubble { padding: 9px 14px; border-radius: 14px; font-size: 13px; line-height: 1.55; }
+    .chat-msg-visitor .chat-msg-bubble {
+      background: var(--surface2);
+      border: 1px solid rgba(0,240,255,.12);
+      color: var(--text);
+      border-radius: 4px 14px 14px 14px;
+    }
+    .chat-msg-admin .chat-msg-bubble {
+      background: linear-gradient(135deg, rgba(0,240,255,.8), rgba(0,190,230,.7));
+      color: #050810; font-weight: 500;
+      border-radius: 14px 14px 4px 14px;
+      box-shadow: 0 0 12px rgba(0,240,255,.2);
+    }
+    .chat-msg-time { font-size: 10px; color: var(--muted); padding: 0 4px; }
+    .chat-msg-admin .chat-msg-time { text-align: right; }
+    .chat-msg-sender { font-size: 10px; color: var(--muted); padding: 0 4px; font-weight: 600; }
+
+    .admin-input-area {
+      padding: 12px 20px;
+      border-top: 1px solid var(--border);
+      background: var(--surface2);
+      flex-shrink: 0;
+    }
+    .admin-attach-preview {
+      display: flex; align-items: center; gap: 8px;
+      padding: 8px 0 10px;
+    }
+    .admin-attach-preview img { width: 44px; height: 44px; object-fit: cover; border-radius: 7px; border: 1px solid rgba(0,240,255,.2); }
+    .admin-attach-fname { font-size: 11px; color: var(--text); flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .admin-attach-cancel { background: none; border: none; color: var(--muted); font-size: 15px; cursor: pointer; padding: 2px 5px; border-radius: 4px; transition: color .15s; }
+    .admin-attach-cancel:hover { color: var(--accent); }
+    .admin-input-row { display: flex; gap: 8px; align-items: center; }
+    .admin-attach-btn {
+      width: 38px; height: 38px; border-radius: 8px;
+      border: 1px solid var(--border); background: var(--surface);
+      color: var(--muted); cursor: pointer; flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+      transition: border-color .2s, color .2s;
+    }
+    .admin-attach-btn:hover { border-color: var(--accent2); color: var(--accent2); }
+    .admin-input-row input {
+      flex: 1;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 10px 14px;
+      border-radius: 10px;
+      font-size: 13px;
+      font-family: 'Inter', sans-serif;
+      outline: none;
+      transition: border-color .2s, box-shadow .2s;
+    }
+    .admin-input-row input:focus { border-color: var(--accent2); box-shadow: 0 0 0 2px rgba(0,240,255,.08); }
+    .admin-input-row input::placeholder { color: var(--muted); }
+    .admin-send-btn {
+      background: var(--accent2);
+      border: none;
+      color: #050810;
+      padding: 10px 18px;
+      border-radius: 10px;
+      font-size: 13px;
+      font-weight: 700;
+      font-family: 'Inter', sans-serif;
+      cursor: pointer;
+      display: flex; align-items: center; gap: 8px;
+      box-shadow: 0 0 14px rgba(0,240,255,.3);
+      transition: box-shadow .2s;
+      white-space: nowrap;
+    }
+    .admin-send-btn:hover { box-shadow: 0 0 22px rgba(0,240,255,.55); }
+    .admin-send-btn:disabled { opacity: .35; cursor: not-allowed; box-shadow: none; }
+    .chat-msg-img { max-width: 100%; max-height: 220px; border-radius: 10px; display: block; cursor: pointer; border: 1px solid rgba(0,240,255,.2); transition: opacity .2s; }
+    .chat-msg-img:hover { opacity: .88; }
+    .chat-msg-file { display: inline-flex; align-items: center; gap: 6px; padding: 7px 12px; border-radius: 8px; background: rgba(0,240,255,.07); border: 1px solid rgba(0,240,255,.2); color: var(--accent2); font-size: 12px; font-weight: 600; text-decoration: none; }
+    .chat-msg-caption { display: block; font-size: 11px; color: var(--muted); margin-top: 4px; }
+
+    .hidden { display: none !important; }
+  </style>
+</head>
+<body>
+
+  <div class="admin-topbar">
+    <div style="display:flex;align-items:center;gap:14px">
+      <span class="admin-logo">DDS<span>GARAGE</span></span>
+      <span class="admin-tag">Admin Chat</span>
+    </div>
+    <div class="admin-status">
+      <div class="admin-online-dot" id="admin-dot"></div>
+      <span id="admin-status-text">Connexion…</span>
+    </div>
+  </div>
+
+  <div class="admin-layout">
+
+    <!-- SIDEBAR -->
+    <aside class="admin-sidebar">
+      <div class="sidebar-header">
+        <div class="sidebar-title">Conversations</div>
+        <div class="sidebar-count" id="conv-count">0 visiteur</div>
+      </div>
+      <div class="conv-list" id="conv-list">
+        <div class="conv-empty" id="conv-empty">
+          <div class="conv-empty-icon">💬</div>
+          Aucun visiteur pour l'instant.<br/>Les conversations apparaîtront ici en temps réel.
+        </div>
+      </div>
+    </aside>
+
+    <!-- CHAT -->
+    <section class="admin-chat" id="admin-chat">
+
+      <div class="chat-empty-state" id="chat-empty">
+        <div class="chat-empty-icon">💬</div>
+        <div class="chat-empty-title">Aucune conversation sélectionnée</div>
+        <div class="chat-empty-sub">Choisissez un visiteur dans la liste<br/>pour voir et répondre à ses messages.</div>
+      </div>
+
+      <div class="chat-active hidden" id="chat-active">
+        <div class="chat-topbar">
+          <div class="chat-visitor-info">
+            <div class="chat-visitor-dot" id="cv-dot"></div>
+            <div>
+              <div class="chat-visitor-name" id="cv-name">—</div>
+              <div class="chat-visitor-status" id="cv-status">hors ligne</div>
+              <div class="chat-visitor-typing" id="cv-typing">en train d'écrire…</div>
+            </div>
+          </div>
+        </div>
+        <div class="chat-messages" id="chat-messages"></div>
+        <div class="admin-input-area">
+          <div id="admin-attach-preview" class="admin-attach-preview" style="display:none">
+            <img id="admin-attach-thumb" src="" alt=""/>
+            <span id="admin-attach-fname" class="admin-attach-fname"></span>
+            <button onclick="adminCancelAttach()" class="admin-attach-cancel">✕</button>
+          </div>
+          <div class="admin-input-row">
+            <input type="file" id="admin-file-input" accept="image/*,.pdf,.doc,.docx" style="display:none" onchange="adminFileSelected(event)"/>
+            <button class="admin-attach-btn" onclick="document.getElementById('admin-file-input').click()" title="Photo / Fichier">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m21.44 11.05-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>
+            </button>
+            <input type="text" id="admin-input" placeholder="Votre réponse…" onkeydown="if(event.key==='Enter')adminSend()"/>
+            <button class="admin-send-btn" onclick="adminSend()" id="admin-send-btn">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="m22 2-7 20-4-9-9-4z"/></svg>
+              Envoyer
+            </button>
+          </div>
+        </div>
+      </div>
+
+    </section>
+  </div>
+
+  <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+  <script>
+    let sock = null;
+    let convs = {};
+    let activeSession = null;
+    let typingTimer = null;
+
+    function init() {
+      sock = io();
+
+      sock.on('connect', () => {
+        document.getElementById('admin-dot').classList.add('online');
+        document.getElementById('admin-status-text').textContent = 'Connecté';
+        sock.emit('admin_join');
+      });
+
+      sock.on('disconnect', () => {
+        document.getElementById('admin-dot').classList.remove('online');
+        document.getElementById('admin-status-text').textContent = 'Déconnecté';
+      });
+
+      sock.on('conversations_list', (data) => {
+        convs = data.conversations || {};
+        renderConvList();
+      });
+
+      sock.on('new_visitor', (data) => {
+        convs[data.session_id] = {
+          name: data.name, messages: data.messages || [],
+          online: true, unread: 0
+        };
+        renderConvList();
+        notifySound();
+      });
+
+      sock.on('visitor_online', (data) => {
+        if (convs[data.session_id]) {
+          convs[data.session_id].online = true;
+          renderConvList();
+          if (activeSession === data.session_id) updateHeader();
+        }
+      });
+
+      sock.on('visitor_offline', (data) => {
+        if (convs[data.session_id]) {
+          convs[data.session_id].online = false;
+          renderConvList();
+          if (activeSession === data.session_id) updateHeader();
+        }
+      });
+
+      sock.on('visitor_message', (data) => {
+        const sid = data.session_id;
+        if (!convs[sid]) return;
+        convs[sid].messages.push(data.message);
+        if (activeSession === sid) {
+          appendMsg(data.message);
+        } else {
+          convs[sid].unread = (convs[sid].unread || 0) + 1;
+        }
+        renderConvList();
+        notifySound();
+      });
+
+      sock.on('visitor_typing', (data) => {
+        if (activeSession === data.session_id) {
+          document.getElementById('cv-typing').style.display = data.typing ? 'block' : 'none';
+          document.getElementById('cv-status').style.display = data.typing ? 'none' : 'block';
+        }
+      });
+
+      sock.on('message_sent', (data) => {
+        if (convs[data.session_id]) {
+          convs[data.session_id].messages.push(data.message);
+          if (activeSession === data.session_id) appendMsg(data.message);
+        }
+        renderConvList();
+      });
+    }
+
+    function renderConvList() {
+      const list = document.getElementById('conv-list');
+      const empty = document.getElementById('conv-empty');
+      const count = Object.keys(convs).length;
+      document.getElementById('conv-count').textContent = count + (count <= 1 ? ' visiteur' : ' visiteurs');
+
+      if (count === 0) { empty.style.display = ''; list.innerHTML = ''; list.appendChild(empty); return; }
+      empty.style.display = 'none';
+
+      const existing = {};
+      list.querySelectorAll('.conv-item').forEach(el => existing[el.dataset.sid] = el);
+
+      Object.entries(convs).forEach(([sid, c]) => {
+        const last = c.messages[c.messages.length - 1];
+        const preview = last ? (last.role === 'admin' ? 'Vous : ' : '') + last.text : 'Aucun message';
+        const unread = c.unread || 0;
+
+        let el = existing[sid];
+        if (!el) {
+          el = document.createElement('div');
+          el.className = 'conv-item';
+          el.dataset.sid = sid;
+          el.onclick = () => selectConv(sid);
+          list.appendChild(el);
+        }
+        if (activeSession === sid) el.classList.add('active'); else el.classList.remove('active');
+        el.innerHTML = `
+          <div class="conv-avatar">
+            ${c.name.charAt(0).toUpperCase()}
+            <div class="conv-online-dot ${c.online ? 'online' : ''}"></div>
+          </div>
+          <div class="conv-info">
+            <div class="conv-name">${esc(c.name)}</div>
+            <div class="conv-preview">${esc(preview)}</div>
+          </div>
+          <div class="conv-meta">
+            ${last ? `<span class="conv-time">${last.time||''}</span>` : ''}
+            ${unread > 0 ? `<span class="conv-unread">${unread}</span>` : ''}
+          </div>
+        `;
+      });
+    }
+
+    function selectConv(sid) {
+      activeSession = sid;
+      if (convs[sid]) convs[sid].unread = 0;
+      renderConvList();
+      document.getElementById('chat-empty').classList.add('hidden');
+      document.getElementById('chat-active').classList.remove('hidden');
+      updateHeader();
+      renderMessages();
+      document.getElementById('admin-input').focus();
+    }
+
+    function updateHeader() {
+      const c = convs[activeSession];
+      if (!c) return;
+      document.getElementById('cv-name').textContent = c.name;
+      document.getElementById('cv-status').textContent = c.online ? 'en ligne' : 'hors ligne';
+      const dot = document.getElementById('cv-dot');
+      if (c.online) dot.classList.add('online'); else dot.classList.remove('online');
+    }
+
+    function renderMessages() {
+      const box = document.getElementById('chat-messages');
+      box.innerHTML = '';
+      const c = convs[activeSession];
+      if (!c) return;
+      c.messages.forEach(m => appendMsg(m, false));
+      box.scrollTop = box.scrollHeight;
+    }
+
+    let adminPendingFile = null;
+
+    function adminFileSelected(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+      if (file.size > 10 * 1024 * 1024) { alert('Fichier trop lourd (max 10 Mo)'); e.target.value = ''; return; }
+      const reader = new FileReader();
+      reader.onload = (ev) => {
+        adminPendingFile = { data: ev.target.result, name: file.name, mime: file.type };
+        const thumb = document.getElementById('admin-attach-thumb');
+        if (file.type.startsWith('image/')) { thumb.src = ev.target.result; thumb.style.display = 'block'; } else { thumb.style.display = 'none'; }
+        document.getElementById('admin-attach-fname').textContent = file.name;
+        document.getElementById('admin-attach-preview').style.display = 'flex';
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function adminCancelAttach() {
+      adminPendingFile = null;
+      document.getElementById('admin-attach-preview').style.display = 'none';
+      document.getElementById('admin-file-input').value = '';
+    }
+
+    function appendMsg(msg, scroll = true) {
+      const box = document.getElementById('chat-messages');
+      const el = document.createElement('div');
+      el.className = 'chat-msg chat-msg-' + msg.role;
+      const senderLabel = msg.role === 'admin' ? 'Vous' : esc(convs[activeSession]?.name || 'Visiteur');
+      let bubble = '';
+      if (msg.type === 'image') {
+        bubble = `<img src="${msg.data}" class="chat-msg-img" onclick="window.open(this.src)" alt="Photo"/>`;
+        if (msg.text) bubble += `<span class="chat-msg-caption">${esc(msg.text)}</span>`;
+      } else if (msg.type === 'file') {
+        bubble = `<a href="${msg.data}" download="${esc(msg.fileName||'fichier')}" class="chat-msg-file">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+          ${esc(msg.fileName || 'Fichier')}
+        </a>`;
+        if (msg.text) bubble += `<span class="chat-msg-caption">${esc(msg.text)}</span>`;
+      } else {
+        bubble = esc(msg.text || '');
+      }
+      el.innerHTML = `
+        <span class="chat-msg-sender">${senderLabel}</span>
+        <div class="chat-msg-bubble">${bubble}</div>
+        <span class="chat-msg-time">${msg.time || ''}</span>
+      `;
+      box.appendChild(el);
+      if (scroll) box.scrollTop = box.scrollHeight;
+    }
+
+    function adminSend() {
+      const inp = document.getElementById('admin-input');
+      const txt = inp.value.trim();
+      if (!activeSession) return;
+
+      if (adminPendingFile) {
+        const isImage = adminPendingFile.mime.startsWith('image/');
+        sock.emit('admin_message', {
+          session_id: activeSession, type: isImage ? 'image' : 'file',
+          data: adminPendingFile.data, fileName: adminPendingFile.name, message: txt
+        });
+        adminCancelAttach(); inp.value = '';
+        return;
+      }
+
+      if (!txt) return;
+      inp.value = '';
+      sock.emit('admin_message', { session_id: activeSession, message: txt, type: 'text' });
+    }
+
+    function notifySound() {
+      try {
+        const ctx = new (window.AudioContext || window.webkitAudioContext)();
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.connect(gain); gain.connect(ctx.destination);
+        osc.frequency.value = 880;
+        gain.gain.setValueAtTime(0.1, ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.3);
+        osc.start(); osc.stop(ctx.currentTime + 0.3);
+      } catch {}
+    }
+
+    function esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+    // Typing detection
+    document.addEventListener('DOMContentLoaded', () => {
+      const inp = document.getElementById('admin-input');
+      inp.addEventListener('input', () => {
+        if (!activeSession) return;
+        sock.emit('admin_typing', { session_id: activeSession, typing: true });
+        clearTimeout(typingTimer);
+        typingTimer = setTimeout(() => sock.emit('admin_typing', { session_id: activeSession, typing: false }), 2000);
+      });
+    });
+
+    init();
+  </script>
+
+</body>
+</html>

@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>DDS GARAGE — Accès Admin</title>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;600;700&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      background: #050810;
+      color: #dde8f5;
+      font-family: 'Inter', sans-serif;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background-image:
+        linear-gradient(rgba(0,240,255,.025) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0,240,255,.025) 1px, transparent 1px);
+      background-size: 60px 60px;
+    }
+    .login-box {
+      background: #090d16;
+      border: 1px solid rgba(0,240,255,.18);
+      border-radius: 20px;
+      padding: 48px 40px;
+      width: 100%;
+      max-width: 380px;
+      box-shadow: 0 0 60px rgba(0,240,255,.08), 0 20px 60px rgba(0,0,0,.5);
+      text-align: center;
+    }
+    .logo {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 2.2rem;
+      letter-spacing: 6px;
+      color: #fff;
+      margin-bottom: 4px;
+    }
+    .logo span { color: #00f0ff; text-shadow: 0 0 16px rgba(0,240,255,.6); }
+    .login-tag {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      color: #4d6080;
+      margin-bottom: 36px;
+    }
+    .login-label {
+      display: block;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: #4d6080;
+      text-align: left;
+      margin-bottom: 8px;
+    }
+    .login-input {
+      width: 100%;
+      background: #0d1320;
+      border: 1px solid #182035;
+      border-radius: 10px;
+      color: #dde8f5;
+      padding: 13px 16px;
+      font-size: 14px;
+      font-family: 'Inter', sans-serif;
+      outline: none;
+      transition: border-color .2s, box-shadow .2s;
+      margin-bottom: 20px;
+      letter-spacing: 2px;
+    }
+    .login-input:focus { border-color: #00f0ff; box-shadow: 0 0 0 3px rgba(0,240,255,.1); }
+    .login-btn {
+      width: 100%;
+      background: #00f0ff;
+      border: none;
+      border-radius: 10px;
+      color: #050810;
+      font-size: 14px;
+      font-weight: 700;
+      font-family: 'Inter', sans-serif;
+      padding: 13px;
+      cursor: pointer;
+      box-shadow: 0 0 20px rgba(0,240,255,.35);
+      transition: box-shadow .2s;
+      letter-spacing: .5px;
+    }
+    .login-btn:hover { box-shadow: 0 0 32px rgba(0,240,255,.55); }
+    .login-error {
+      background: rgba(230,57,70,.08);
+      border: 1px solid rgba(230,57,70,.25);
+      border-radius: 8px;
+      color: #f87171;
+      padding: 10px 14px;
+      font-size: 13px;
+      margin-bottom: 20px;
+    }
+  </style>
+</head>
+<body>
+  <div class="login-box">
+    <div class="logo">DDS<span>GARAGE</span></div>
+    <div class="login-tag">Accès Admin</div>
+
+    {% if error %}
+    <div class="login-error">Mot de passe incorrect.</div>
+    {% endif %}
+
+    <form method="POST">
+      <label class="login-label">Mot de passe</label>
+      <input type="password" name="password" class="login-input" placeholder="••••••••" autofocus/>
+      <button type="submit" class="login-btn">Accéder au panneau</button>
+    </form>
+  </div>
+</body>
+</html>
