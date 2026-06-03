@@ -30,7 +30,7 @@
     <a href="/garage" class="nav-mobile-link">Mon Garage</a>
     <a href="/login" class="nav-mobile-link">Se connecter</a>
   </div>
-  <script>function toggleMobileNav(){document.getElementById("nav-mob").classList.toggle("open");}</script>
+  <script>document.addEventListener("DOMContentLoaded",()=>{if(typeof requireAuth==="function")requireAuth();});function toggleMobileNav(){document.getElementById("nav-mob").classList.toggle("open");}</script>
 
   <main>
 

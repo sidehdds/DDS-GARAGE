@@ -55,4 +55,12 @@ async function authSignOut() {
   window.location.href = '/';
 }
 
+async function requireAuth() {
+  if (!sb()) return;
+  const { data: { session } } = await sb().auth.getSession();
+  if (!session) {
+    window.location.href = '/login?redirect=' + encodeURIComponent(window.location.pathname);
+  }
+}
+
 document.addEventListener('DOMContentLoaded', authInit);

@@ -116,7 +116,8 @@
         if (mode === 'login') {
           const { error } = await _sb.auth.signInWithPassword({ email, password });
           if (error) throw error;
-          window.location.href = '/garage';
+          const params = new URLSearchParams(window.location.search);
+          window.location.href = params.get('redirect') || '/diagnostic';
         } else {
           const { error } = await _sb.auth.signUp({ email, password });
           if (error) throw error;
@@ -131,9 +132,11 @@
     }
 
     async function oauthLogin(provider) {
+      const params = new URLSearchParams(window.location.search);
+      const redirect = params.get('redirect') || '/diagnostic';
       const { error } = await _sb.auth.signInWithOAuth({
         provider,
-        options: { redirectTo: window.location.origin + '/garage' }
+        options: { redirectTo: window.location.origin + redirect }
       });
       if (error) showError(error.message);
     }
