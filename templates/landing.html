@@ -371,6 +371,78 @@
     </div>
   </section>
 
+  <!-- PRICING -->
+  <section id="pricing" style="padding:5rem 2rem; border-top:1px solid rgba(0,240,255,.06);">
+    <div style="max-width:480px; margin:0 auto; text-align:center;">
+      <div class="section-label">Tarifs</div>
+      <h2 class="section-title">Simple et transparent</h2>
+      <p class="section-sub">3 diagnostics gratuits pour essayer, puis Premium pour aller plus loin.</p>
+
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-top:2.5rem;">
+
+        <!-- FREE -->
+        <div style="background:#090d16; border:1px solid #182035; border-radius:16px; padding:28px 20px; text-align:left;">
+          <div style="font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#4d6080;margin-bottom:12px;">Gratuit</div>
+          <div style="font-family:'Bebas Neue',sans-serif;font-size:2.2rem;letter-spacing:2px;color:#fff;line-height:1;">0€</div>
+          <div style="font-size:11px;color:#4d6080;margin-bottom:20px;">pour toujours</div>
+          <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:24px;">
+            <div style="font-size:12px;color:#7a96b4;display:flex;gap:8px;align-items:center;"><span style="color:#4ade80;">✓</span> 3 diagnostics IA</div>
+            <div style="font-size:12px;color:#7a96b4;display:flex;gap:8px;align-items:center;"><span style="color:#4ade80;">✓</span> Tuning illimité</div>
+            <div style="font-size:12px;color:#7a96b4;display:flex;gap:8px;align-items:center;"><span style="color:#4ade80;">✓</span> Historique véhicule</div>
+            <div style="font-size:12px;color:#4d6080;display:flex;gap:8px;align-items:center;"><span>✕</span> Chat live</div>
+          </div>
+          <a href="/diagnostic" style="display:block;text-align:center;background:transparent;border:1px solid #182035;color:#7a96b4;font-size:12px;font-weight:600;font-family:'Inter',sans-serif;padding:10px;border-radius:8px;text-decoration:none;">Commencer gratuitement</a>
+        </div>
+
+        <!-- PREMIUM -->
+        <div style="background:#090d16; border:1px solid rgba(0,240,255,.3); border-radius:16px; padding:28px 20px; text-align:left; position:relative; box-shadow:0 0 30px rgba(0,240,255,.08);">
+          <div style="position:absolute;top:-10px;left:50%;transform:translateX(-50%);background:#00f0ff;color:#050810;font-size:9px;font-weight:700;letter-spacing:1.5px;padding:3px 12px;border-radius:20px;">POPULAIRE</div>
+          <div style="font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#00f0ff;margin-bottom:12px;">Premium</div>
+          <div style="font-family:'Bebas Neue',sans-serif;font-size:2.2rem;letter-spacing:2px;color:#00f0ff;line-height:1;text-shadow:0 0 16px rgba(0,240,255,.4);">4.99€</div>
+          <div style="font-size:11px;color:#4d6080;margin-bottom:20px;">par mois · résiliable</div>
+          <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:24px;">
+            <div style="font-size:12px;color:#7a96b4;display:flex;gap:8px;align-items:center;"><span style="color:#00f0ff;">✓</span> Diagnostics <strong style="color:#fff;">illimités</strong></div>
+            <div style="font-size:12px;color:#7a96b4;display:flex;gap:8px;align-items:center;"><span style="color:#00f0ff;">✓</span> Tuning illimité</div>
+            <div style="font-size:12px;color:#7a96b4;display:flex;gap:8px;align-items:center;"><span style="color:#00f0ff;">✓</span> Historique véhicule</div>
+            <div style="font-size:12px;color:#7a96b4;display:flex;gap:8px;align-items:center;"><span style="color:#00f0ff;">✓</span> Chat live prioritaire</div>
+          </div>
+          <button onclick="lancerPaiementLanding()" style="display:block;width:100%;background:#00f0ff;border:none;color:#050810;font-size:13px;font-weight:700;font-family:'Inter',sans-serif;padding:11px;border-radius:8px;cursor:pointer;box-shadow:0 0 16px rgba(0,240,255,.35);">S'abonner →</button>
+          <div style="margin-top:10px;display:flex;gap:6px;">
+            <input type="text" id="promo-landing" placeholder="Code promo…" style="flex:1;background:#0d1320;border:1px solid #182035;color:#dde8f5;padding:7px 10px;border-radius:6px;font-size:11px;font-family:'Inter',sans-serif;outline:none;text-transform:uppercase;letter-spacing:1px;" onkeydown="if(event.key==='Enter')appliquerPromoLanding()"/>
+            <button onclick="appliquerPromoLanding()" style="background:transparent;border:1px solid #182035;color:#4d6080;font-size:11px;font-weight:600;font-family:'Inter',sans-serif;padding:7px 10px;border-radius:6px;cursor:pointer;white-space:nowrap;">OK</button>
+          </div>
+          <div id="promo-landing-msg" style="font-size:11px;margin-top:6px;text-align:center;display:none;"></div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <script>
+    async function lancerPaiementLanding() {
+      const res = await fetch('/api/create-checkout', { method:'POST', headers:{'Content-Type':'application/json'} });
+      const data = await res.json();
+      if (data.url) window.location.href = data.url;
+    }
+    async function appliquerPromoLanding() {
+      const code = document.getElementById('promo-landing').value.trim();
+      if (!code) return;
+      const res = await fetch('/api/redeem-promo', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({code}) });
+      const data = await res.json();
+      const msg = document.getElementById('promo-landing-msg');
+      msg.style.display = 'block';
+      if (data.success) {
+        localStorage.setItem('premium_token', data.token);
+        msg.style.color = '#4ade80';
+        msg.textContent = '✅ Code activé — accès illimité !';
+        setTimeout(() => window.location.href = '/diagnostic', 1500);
+      } else {
+        msg.style.color = '#f87171';
+        msg.textContent = '❌ Code invalide';
+      }
+    }
+  </script>
+
   <!-- FOOTER -->
   <footer>
     <div class="landing-footer">
