@@ -26,7 +26,7 @@ stripe.api_key = os.environ.get('STRIPE_SECRET_KEY', '')
 STRIPE_PUB_KEY = os.environ.get('STRIPE_PUBLISHABLE_KEY', '')
 STRIPE_PRICE_ID = os.environ.get('STRIPE_PRICE_ID', '')
 FREE_LIMIT = 3
-PROMO_CODES = {c.strip() for c in os.environ.get('PROMO_CODES', 'DDSGARAGE').split(',')}
+PROMO_CODES = {c.strip() for c in os.environ.get('PROMO_CODES', 'BLOCITY').split(',')}
 
 free_usage = defaultdict(int)        # ip -> nb diagnostics utilisés
 active_tokens = {}                   # token -> {expires, email}
