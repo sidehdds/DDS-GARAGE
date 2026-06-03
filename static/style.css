@@ -1979,19 +1979,154 @@ main {
 
 .lc-hidden { display: none !important; }
 
+/* ── HAMBURGER MENU ───────────────────────────────────────────────────── */
+.nav-hamburger {
+  display: none;
+  flex-direction: column;
+  gap: 5px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 6px;
+  border-radius: 6px;
+  transition: background .15s;
+}
+.nav-hamburger:hover { background: var(--surface2); }
+.nav-hamburger span {
+  display: block;
+  width: 22px;
+  height: 2px;
+  background: var(--text);
+  border-radius: 2px;
+  transition: all .25s;
+}
+
+.nav-mobile-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(5,8,16,.97);
+  z-index: 99;
+  flex-direction: column;
+  padding: 1.5rem;
+  backdrop-filter: blur(16px);
+  border-bottom: 1px solid rgba(0,240,255,.12);
+  animation: slideDown .2s ease;
+  top: 56px;
+  height: auto;
+  box-shadow: 0 8px 30px rgba(0,0,0,.5);
+}
+@keyframes slideDown {
+  from { opacity:0; transform:translateY(-10px); }
+  to   { opacity:1; transform:translateY(0); }
+}
+.nav-mobile-overlay.open { display: flex; }
+.nav-mobile-link {
+  display: block;
+  padding: 14px 12px;
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  text-decoration: none;
+  color: var(--muted);
+  border-bottom: 1px solid var(--border);
+  transition: color .15s;
+}
+.nav-mobile-link:hover, .nav-mobile-link.active { color: var(--accent2); }
+.nav-mobile-link:last-child { border-bottom: none; }
+
+/* ── TABLET ───────────────────────────────────────────────────────────── */
 @media (max-width: 900px) {
   .results-layout { grid-template-columns: 1fr; }
   .col-left { position: static; }
   .parts-grid { grid-template-columns: repeat(2, 1fr); }
-  .stage-grid { grid-template-columns: 1fr; }
+  .stage-grid { grid-template-columns: repeat(2, 1fr); }
   .hist-info-grid { grid-template-columns: repeat(2, 1fr); }
+  .features-grid { grid-template-columns: 1fr !important; }
+  .steps-row { flex-direction: column; gap: 24px; }
+  .steps-row::before { display: none; }
 }
 
-@media (max-width: 600px) {
-  .vc-stats { gap: 1rem; }
-  .topbar .tagline { display: none; }
-  .hero h1 { font-size: 1.5rem; }
-  main { padding: 2rem 1rem 4rem; }
+/* ── MOBILE ───────────────────────────────────────────────────────────── */
+@media (max-width: 700px) {
+
+  /* NAV */
+  .nav-links { display: none; }
+  .nav-hamburger { display: flex; }
+  .topbar { padding: 0 1rem; }
+
+  /* MAIN */
+  main { padding: 1.5rem 1rem 5rem; gap: 1rem; }
+
+  /* HERO */
+  .hero { padding: 1.5rem 0 1rem; }
+  .hero h1 { font-size: 1.4rem; }
+  .hero-sub { font-size: 0.82rem; margin-bottom: 1.2rem; }
+  .hero-title { font-size: clamp(2.8rem, 10vw, 5rem) !important; }
+
+  /* SEARCH */
+  .search-inner { border-radius: 10px; }
+  .search-inner input { font-size: 1.2rem; letter-spacing: 4px; padding: 0.75rem 0; }
+  .search-inner button { padding: 0.75rem 1rem; font-size: 0.75rem; }
+  .plate-icon { padding: 0 0.7rem; }
+
+  /* VEHICLE CARD */
+  .vc-top { flex-direction: column; gap: 1rem; padding: 1.2rem; }
+  .vc-stats { justify-content: flex-start; gap: 1.2rem; }
+  .vc-grid { grid-template-columns: repeat(2, 1fr); padding: 1rem; }
+  .vc-item:nth-child(3n) { border-right: 1px solid var(--border); }
+  .vc-item:nth-child(2n) { border-right: none; }
+  .vc-item:nth-child(n+3) { border-top: 1px solid var(--border); }
+
+  /* DIAG CARD */
+  .diag-card-header { padding: 1rem 1.2rem; gap: 0.7rem; }
+  .diag-form { padding: 1.2rem; }
+  .diag-content { padding: 1.2rem; }
+  .diag-result-title { padding: 0.8rem 1.2rem; }
+
+  /* STAGE GRID */
+  .stage-grid { grid-template-columns: 1fr; }
   .parts-grid { grid-template-columns: 1fr; }
-  .tuning-hero-title { font-size: 2.5rem; }
+
+  /* HIST */
+  .hist-block { padding: 16px; }
+  .hist-info-grid { grid-template-columns: repeat(2, 1fr); gap: 8px; }
+  .histovec-main-btn { font-size: 13px; padding: 12px 14px; }
+
+  /* VEHICLE BAR */
+  .vehicle-bar { flex-direction: column; align-items: flex-start; padding: 10px 14px; }
+  .vbar-info { flex-wrap: wrap; gap: 8px; }
+
+  /* PAYWALL */
+  .paywall-box { padding: 28px 20px; margin: 0 8px; }
+  .paywall-title { font-size: 1.5rem; }
+  .paywall-price { font-size: 2rem; }
+
+  /* COOKIE BANNER */
+  #cookie-banner { flex-direction: column; align-items: flex-start; padding: 14px 16px; gap: 12px; }
+  .cookie-btns { width: 100%; justify-content: flex-end; }
+
+  /* CONSEIL CHAT */
+  .conseil-section { margin-top: 1rem; }
+
+  /* CHAT WIDGET */
+  #lc-widget { bottom: 16px; right: 16px; }
+  .lc-panel { width: calc(100vw - 32px); right: 0; bottom: 66px; }
+
+  /* LANDING PRICING */
+  .stats-bar { flex-direction: column; border-radius: 12px; }
+  .stat-item { border-right: none; border-bottom: 1px solid rgba(0,240,255,.08); padding: 14px 20px; }
+  .stat-item:last-child { border-bottom: none; }
+
+  /* GARAGE */
+  .garage-header { flex-direction: column; align-items: flex-start; }
+  .add-form-row { flex-direction: column; }
+  .add-form-row input#add-plate { width: 100%; }
+  .btn-add { width: 100%; }
+  .vb-header { padding: 12px 14px; gap: 8px; flex-wrap: wrap; }
+  .vb-counts { width: 100%; justify-content: flex-start; }
+
+  /* LOGIN */
+  .auth-box { padding: 24px 20px; }
 }

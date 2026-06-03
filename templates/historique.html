@@ -16,8 +16,21 @@
       <a href="/diagnostic" class="nav-link">Diagnostic</a>
       <a href="/tuning" class="nav-link">Tuning</a>
       <a href="/historique" class="nav-link nav-link-active">Historique</a>
+      <a href="/garage" class="nav-link" id="nav-garage-btn" style="display:none">Mon Garage</a>
+      <a href="/login" class="nav-link" id="nav-login-btn">Se connecter</a>
+      <div class="nav-avatar" id="nav-avatar" style="display:none" onclick="authSignOut()" title="Déconnexion"></div>
     </div>
+    <button class="nav-hamburger" onclick="toggleMobileNav()"><span></span><span></span><span></span></button>
   </nav>
+  <div class="nav-mobile-overlay" id="nav-mob">
+    <a href="/" class="nav-mobile-link">Accueil</a>
+    <a href="/diagnostic" class="nav-mobile-link">Diagnostic</a>
+    <a href="/tuning" class="nav-mobile-link">Tuning</a>
+    <a href="/historique" class="nav-mobile-link active">Historique</a>
+    <a href="/garage" class="nav-mobile-link">Mon Garage</a>
+    <a href="/login" class="nav-mobile-link">Se connecter</a>
+  </div>
+  <script>function toggleMobileNav(){document.getElementById("nav-mob").classList.toggle("open");}</script>
 
   <main>
 
