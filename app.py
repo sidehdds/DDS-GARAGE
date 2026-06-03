@@ -99,6 +99,34 @@ def api_plaque():
     plaque_brute = data.get("plaque", "").strip()
     if not plaque_brute:
         return jsonify({"success": False, "error": "Plaque vide"}), 400
+
+    # Vérification premium : token localStorage OU abonnement Supabase
+    token = request.headers.get('X-Premium-Token', '')
+    user_id = request.headers.get('X-User-Id', '')
+    is_premium = (token in active_tokens and active_tokens[token]['expires'] > datetime.now())
+
+    if not is_premium and user_id:
+        try:
+            sub_resp = requests.get(
+                f"{SUPABASE_URL}/rest/v1/subscriptions",
+                headers={"apikey": SUPABASE_SERVICE_KEY, "Authorization": f"Bearer {SUPABASE_SERVICE_KEY}"},
+                params={"user_id": f"eq.{user_id}", "status": "eq.active", "select": "expires_at"}
+            )
+            rows = sub_resp.json()
+            if rows and isinstance(rows, list) and rows:
+                exp = rows[0].get('expires_at', '')
+                if exp and datetime.fromisoformat(exp.replace('Z', '+00:00')).replace(tzinfo=None) > datetime.now():
+                    is_premium = True
+        except Exception:
+            pass
+
+    if not is_premium:
+        ip = request.headers.get('X-Forwarded-For', request.remote_addr).split(',')[0].strip()
+        if free_usage[ip] >= FREE_LIMIT:
+            return jsonify({"success": False, "paywall": True,
+                            "error": "Limite gratuite atteinte"}), 402
+        free_usage[ip] += 1
+
     plaque_clean = plaque_brute.upper().replace("-", "").replace(" ", "")
     if len(plaque_clean) == 7:
         plaque_formatee = f"{plaque_clean[:2]}-{plaque_clean[2:5]}-{plaque_clean[5:]}"
@@ -107,7 +135,10 @@ def api_plaque():
     resultat = rechercher_plaque(plaque_formatee)
     if not resultat or resultat.get("error"):
         return jsonify({"success": False, "error": "Plaque introuvable"}), 404
-    return jsonify({"success": True, "data": resultat, "plaque": plaque_formatee})
+
+    ip = request.headers.get('X-Forwarded-For', request.remote_addr).split(',')[0].strip()
+    remaining = -1 if is_premium else max(0, FREE_LIMIT - free_usage[ip])
+    return jsonify({"success": True, "data": resultat, "plaque": plaque_formatee, "remaining": remaining})
 
 @app.route("/api/redeem-promo", methods=["POST"])
 def redeem_promo():
@@ -221,34 +252,6 @@ def verify_token():
 
 @app.route("/api/diagnostic", methods=["POST"])
 def api_diagnostic():
-    # Vérification premium : token localStorage OU abonnement Supabase
-    token = request.headers.get('X-Premium-Token', '')
-    user_id = request.headers.get('X-User-Id', '')
-    is_premium = (token in active_tokens and active_tokens[token]['expires'] > datetime.now())
-
-    # Vérifier abonnement Supabase si user connecté
-    if not is_premium and user_id:
-        sub_resp = requests.get(
-            f"{SUPABASE_URL}/rest/v1/subscriptions",
-            headers={"apikey": SUPABASE_SERVICE_KEY, "Authorization": f"Bearer {SUPABASE_SERVICE_KEY}"},
-            params={"user_id": f"eq.{user_id}", "status": "eq.active", "select": "expires_at"}
-        )
-        rows = sub_resp.json()
-        if rows and isinstance(rows, list) and rows:
-            try:
-                exp = rows[0].get('expires_at', '')
-                if exp and datetime.fromisoformat(exp.replace('Z', '+00:00')).replace(tzinfo=None) > datetime.now():
-                    is_premium = True
-            except Exception:
-                pass
-
-    if not is_premium:
-        ip = request.headers.get('X-Forwarded-For', request.remote_addr).split(',')[0].strip()
-        if free_usage[ip] >= FREE_LIMIT:
-            return jsonify({"success": False, "paywall": True,
-                            "error": "Limite gratuite atteinte"}), 402
-        free_usage[ip] += 1
-
     data = request.get_json()
     vehicule = data.get("vehicule", {})
     symptomes = data.get("symptomes", "").strip()
@@ -261,9 +264,7 @@ def api_diagnostic():
     description_bruit = data.get("description_bruit", "").strip()
     try:
         resultat = diagnostiquer(vehicule, symptomes, kilometrage, images, description_bruit)
-        remaining = -1 if is_premium else max(0, FREE_LIMIT - free_usage[
-            request.headers.get('X-Forwarded-For', request.remote_addr).split(',')[0].strip()])
-        return jsonify({"success": True, "diagnostic": resultat, "remaining": remaining})
+        return jsonify({"success": True, "diagnostic": resultat})
     except Exception as e:
         return jsonify({"success": False, "error": str(e)}), 500
 
