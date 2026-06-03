@@ -1,8 +1,11 @@
 import os
+import uuid
+import stripe
+from collections import defaultdict
 from flask import Flask, render_template, request, jsonify, session, redirect
 from flask_cors import CORS
 from flask_socketio import SocketIO, emit, join_room
-from datetime import datetime
+from datetime import datetime, timedelta
 from dotenv import load_dotenv
 from modules.api.plaque import rechercher_plaque
 from modules.api.diagnostic import diagnostiquer, pannes_frequentes
@@ -18,6 +21,14 @@ CORS(app)
 socketio = SocketIO(app, cors_allowed_origins="*", async_mode='gevent')
 
 ADMIN_PASSWORD = os.environ.get('ADMIN_PASSWORD', 'ddsgarage2024')
+
+stripe.api_key = os.environ.get('STRIPE_SECRET_KEY', '')
+STRIPE_PUB_KEY = os.environ.get('STRIPE_PUBLISHABLE_KEY', '')
+STRIPE_PRICE_ID = os.environ.get('STRIPE_PRICE_ID', '')
+FREE_LIMIT = 3
+
+free_usage = defaultdict(int)        # ip -> nb diagnostics utilisés
+active_tokens = {}                   # token -> {expires, email}
 
 conversations = {}
 socket_to_session = {}
@@ -89,8 +100,58 @@ def api_plaque():
         return jsonify({"success": False, "error": "Plaque introuvable"}), 404
     return jsonify({"success": True, "data": resultat, "plaque": plaque_formatee})
 
+@app.route("/api/create-checkout", methods=["POST"])
+def create_checkout():
+    try:
+        base = request.host_url.rstrip('/')
+        checkout = stripe.checkout.Session.create(
+            payment_method_types=['card'],
+            line_items=[{'price': STRIPE_PRICE_ID, 'quantity': 1}],
+            mode='subscription',
+            success_url=f"{base}/payment/success?session_id={{CHECKOUT_SESSION_ID}}",
+            cancel_url=f"{base}/diagnostic",
+            locale='fr',
+        )
+        return jsonify({'url': checkout.url})
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route("/payment/success")
+def payment_success():
+    session_id = request.args.get('session_id', '')
+    token = ''
+    email = ''
+    try:
+        cs = stripe.checkout.Session.retrieve(session_id)
+        if cs.status == 'complete':
+            token = str(uuid.uuid4())
+            email = cs.customer_details.email or ''
+            active_tokens[token] = {'expires': datetime.now() + timedelta(days=32), 'email': email}
+    except Exception:
+        pass
+    return render_template('payment_success.html', token=token, email=email,
+                           pub_key=STRIPE_PUB_KEY)
+
+@app.route("/api/verify-token", methods=["POST"])
+def verify_token():
+    token = request.get_json().get('token', '')
+    if token in active_tokens and active_tokens[token]['expires'] > datetime.now():
+        return jsonify({'valid': True, 'email': active_tokens[token]['email']})
+    return jsonify({'valid': False})
+
 @app.route("/api/diagnostic", methods=["POST"])
 def api_diagnostic():
+    # Vérification quota / token premium
+    token = request.headers.get('X-Premium-Token', '')
+    is_premium = (token in active_tokens and active_tokens[token]['expires'] > datetime.now())
+
+    if not is_premium:
+        ip = request.headers.get('X-Forwarded-For', request.remote_addr).split(',')[0].strip()
+        if free_usage[ip] >= FREE_LIMIT:
+            return jsonify({"success": False, "paywall": True,
+                            "error": "Limite gratuite atteinte"}), 402
+        free_usage[ip] += 1
+
     data = request.get_json()
     vehicule = data.get("vehicule", {})
     symptomes = data.get("symptomes", "").strip()
@@ -103,7 +164,9 @@ def api_diagnostic():
     description_bruit = data.get("description_bruit", "").strip()
     try:
         resultat = diagnostiquer(vehicule, symptomes, kilometrage, images, description_bruit)
-        return jsonify({"success": True, "diagnostic": resultat})
+        remaining = -1 if is_premium else max(0, FREE_LIMIT - free_usage[
+            request.headers.get('X-Forwarded-For', request.remote_addr).split(',')[0].strip()])
+        return jsonify({"success": True, "diagnostic": resultat, "remaining": remaining})
     except Exception as e:
         return jsonify({"success": False, "error": str(e)}), 500
 

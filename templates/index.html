@@ -19,6 +19,26 @@
     </div>
   </nav>
 
+  <!-- PAYWALL MODAL -->
+  <div id="paywall-overlay" class="paywall-overlay" style="display:none">
+    <div class="paywall-box">
+      <div class="paywall-icon">🔒</div>
+      <div class="paywall-title">Limite atteinte</div>
+      <p class="paywall-sub">Tu as utilisé tes 3 diagnostics gratuits.<br/>Passe à Premium pour des diagnostics illimités.</p>
+      <div class="paywall-features">
+        <div class="paywall-feature"><span class="paywall-feature-icon">⚡</span>Diagnostics IA illimités</div>
+        <div class="paywall-feature"><span class="paywall-feature-icon">🔧</span>Analyse des pannes fréquentes</div>
+        <div class="paywall-feature"><span class="paywall-feature-icon">💬</span>Conseiller IA inclus</div>
+        <div class="paywall-feature"><span class="paywall-feature-icon">❌</span>Sans publicité</div>
+      </div>
+      <div class="paywall-price">4.99€</div>
+      <div class="paywall-price-sub">par mois — résiliable à tout moment</div>
+      <button class="paywall-btn" onclick="lancerPaiement()">
+        S'abonner maintenant →
+      </button>
+    </div>
+  </div>
+
   <main>
     <!-- SEARCH -->
     <section class="hero">
@@ -709,6 +729,41 @@
     function escapeHtml(text) {
       return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
     }
+
+    // ── PREMIUM / PAYWALL ──────────────────────────────────────────────
+    const PREMIUM_TOKEN = localStorage.getItem('premium_token') || '';
+
+    function getPremiumHeaders() {
+      return PREMIUM_TOKEN ? { 'Content-Type':'application/json', 'X-Premium-Token': PREMIUM_TOKEN } : { 'Content-Type':'application/json' };
+    }
+
+    function updateCounter(remaining) {
+      let el = document.getElementById('diag-counter');
+      if (!el) return;
+      if (remaining === -1) {
+        el.textContent = '✦ Premium — diagnostics illimités';
+        el.className = 'diag-counter premium';
+      } else {
+        el.textContent = remaining + ' diagnostic' + (remaining > 1 ? 's' : '') + ' gratuit' + (remaining > 1 ? 's' : '') + ' restant' + (remaining > 1 ? 's' : '');
+        el.className = 'diag-counter' + (remaining <= 1 ? ' warn' : '');
+      }
+    }
+
+    async function lancerPaiement() {
+      const res = await fetch('/api/create-checkout', { method:'POST', headers:{'Content-Type':'application/json'} });
+      const data = await res.json();
+      if (data.url) window.location.href = data.url;
+    }
+
+    // Vérifier token premium au chargement
+    (async () => {
+      if (PREMIUM_TOKEN) {
+        const r = await fetch('/api/verify-token', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({token: PREMIUM_TOKEN}) });
+        const d = await r.json();
+        if (d.valid) { updateCounter(-1); return; }
+        localStorage.removeItem('premium_token');
+      }
+    })();
   </script>
 
   <!-- LIVE CHAT WIDGET -->

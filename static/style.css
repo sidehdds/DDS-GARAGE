@@ -1660,6 +1660,66 @@ main {
 .hi-orange{ border-top: 2px solid #f97316; box-shadow: 0 -1px 12px rgba(249, 115, 22, 0.1); }
 .hi-purple{ border-top: 2px solid #a78bfa; box-shadow: 0 -1px 12px rgba(167, 139, 250, 0.1); }
 
+/* ── PAYWALL ──────────────────────────────────────────────────────────── */
+
+.paywall-overlay {
+  position: fixed; inset: 0; z-index: 9500;
+  background: rgba(5,8,16,.85); backdrop-filter: blur(8px);
+  display: flex; align-items: center; justify-content: center;
+  padding: 1rem;
+  animation: fadeIn .25s ease;
+}
+@keyframes fadeIn { from{opacity:0} to{opacity:1} }
+
+.paywall-box {
+  background: var(--surface);
+  border: 1px solid rgba(0,240,255,.2);
+  border-radius: 20px; padding: 40px 36px;
+  max-width: 420px; width: 100%; text-align: center;
+  box-shadow: 0 0 60px rgba(0,240,255,.1), 0 20px 60px rgba(0,0,0,.5);
+  animation: scaleIn .25s ease;
+}
+@keyframes scaleIn { from{transform:scale(.95);opacity:0} to{transform:scale(1);opacity:1} }
+
+.paywall-icon { font-size: 40px; margin-bottom: 16px; }
+.paywall-title { font-family:'Bebas Neue',sans-serif; font-size:1.8rem; letter-spacing:3px; color:#fff; margin-bottom:8px; }
+.paywall-sub { font-size:13px; color:var(--muted); line-height:1.7; margin-bottom:24px; }
+
+.paywall-features { display:flex; flex-direction:column; gap:8px; margin-bottom:24px; text-align:left; }
+.paywall-feature {
+  display:flex; align-items:center; gap:10px;
+  background:rgba(0,240,255,.05); border:1px solid rgba(0,240,255,.1);
+  border-radius:8px; padding:10px 14px; font-size:13px; color:var(--text);
+}
+.paywall-feature-icon { font-size:16px; flex-shrink:0; }
+
+.paywall-price {
+  font-family:'Bebas Neue',sans-serif; font-size:2.5rem; letter-spacing:2px;
+  color:var(--accent2); text-shadow:0 0 20px rgba(0,240,255,.4);
+  margin-bottom:4px;
+}
+.paywall-price-sub { font-size:11px; color:var(--muted); margin-bottom:20px; }
+
+.paywall-btn {
+  display:block; width:100%; background:var(--accent2); border:none;
+  color:#050810; font-size:14px; font-weight:700; font-family:'Inter',sans-serif;
+  padding:14px; border-radius:10px; cursor:pointer;
+  box-shadow:0 0 20px rgba(0,240,255,.35); transition:box-shadow .2s;
+  text-decoration:none;
+}
+.paywall-btn:hover { box-shadow:0 0 32px rgba(0,240,255,.6); }
+
+/* Compteur diagnostics restants */
+.diag-counter {
+  display:inline-flex; align-items:center; gap:6px;
+  font-size:11px; font-weight:600; letter-spacing:1px;
+  text-transform:uppercase; padding:5px 12px; border-radius:20px;
+  background:rgba(0,240,255,.07); border:1px solid rgba(0,240,255,.15);
+  color:var(--accent2); margin-bottom:1rem;
+}
+.diag-counter.warn { background:rgba(230,57,70,.07); border-color:rgba(230,57,70,.2); color:#f87171; }
+.diag-counter.premium { background:rgba(74,222,128,.07); border-color:rgba(74,222,128,.2); color:#4ade80; }
+
 /* ── COOKIE BANNER ────────────────────────────────────────────────────── */
 
 #cookie-banner {
