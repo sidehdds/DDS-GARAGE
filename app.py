@@ -15,7 +15,7 @@ load_dotenv()
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'dds-fallback-secret')
 CORS(app)
-socketio = SocketIO(app, cors_allowed_origins="*")
+socketio = SocketIO(app, cors_allowed_origins="*", async_mode='gevent')
 
 ADMIN_PASSWORD = os.environ.get('ADMIN_PASSWORD', 'ddsgarage2024')
 
