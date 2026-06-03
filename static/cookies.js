@@ -1,6 +1,6 @@
 // ── Cookie consent + AdSense loader ───────────────────────────────────────
 
-const ADSENSE_ID = "ca-pub-XXXXXXXXXXXXXXXX"; // ← Remplace avec ton ID AdSense
+const ADSENSE_ID = "ca-pub-7477778365839154";
 
 function cookieInit() {
   const consent = localStorage.getItem('cookie_consent');
