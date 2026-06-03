@@ -36,6 +36,11 @@
       <button class="paywall-btn" onclick="lancerPaiement()">
         S'abonner maintenant →
       </button>
+      <div class="paywall-promo-row">
+        <input type="text" id="promo-input" class="paywall-promo-input" placeholder="Code promo…" autocomplete="off"/>
+        <button class="paywall-promo-btn" onclick="appliquerPromo()">Appliquer</button>
+      </div>
+      <div id="promo-error" class="paywall-promo-error" style="display:none"></div>
     </div>
   </div>
 
@@ -746,6 +751,23 @@
       } else {
         el.textContent = remaining + ' diagnostic' + (remaining > 1 ? 's' : '') + ' gratuit' + (remaining > 1 ? 's' : '') + ' restant' + (remaining > 1 ? 's' : '');
         el.className = 'diag-counter' + (remaining <= 1 ? ' warn' : '');
+      }
+    }
+
+    async function appliquerPromo() {
+      const code = document.getElementById('promo-input').value.trim();
+      if (!code) return;
+      const res = await fetch('/api/redeem-promo', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({code}) });
+      const data = await res.json();
+      if (data.success) {
+        localStorage.setItem('premium_token', data.token);
+        localStorage.setItem('premium_email', 'promo');
+        document.getElementById('paywall-overlay').style.display = 'none';
+        updateCounter(-1);
+      } else {
+        const err = document.getElementById('promo-error');
+        err.textContent = '❌ ' + (data.error || 'Code invalide');
+        err.style.display = 'block';
       }
     }
 

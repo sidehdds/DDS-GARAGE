@@ -26,6 +26,7 @@ stripe.api_key = os.environ.get('STRIPE_SECRET_KEY', '')
 STRIPE_PUB_KEY = os.environ.get('STRIPE_PUBLISHABLE_KEY', '')
 STRIPE_PRICE_ID = os.environ.get('STRIPE_PRICE_ID', '')
 FREE_LIMIT = 3
+PROMO_CODES = {c.strip() for c in os.environ.get('PROMO_CODES', 'DDSGARAGE').split(',')}
 
 free_usage = defaultdict(int)        # ip -> nb diagnostics utilisés
 active_tokens = {}                   # token -> {expires, email}
@@ -99,6 +100,15 @@ def api_plaque():
     if not resultat or resultat.get("error"):
         return jsonify({"success": False, "error": "Plaque introuvable"}), 404
     return jsonify({"success": True, "data": resultat, "plaque": plaque_formatee})
+
+@app.route("/api/redeem-promo", methods=["POST"])
+def redeem_promo():
+    code = request.get_json().get('code', '').strip().upper()
+    if code not in PROMO_CODES:
+        return jsonify({'success': False, 'error': 'Code invalide'}), 400
+    token = str(uuid.uuid4())
+    active_tokens[token] = {'expires': datetime.now() + timedelta(days=36500), 'email': 'promo'}
+    return jsonify({'success': True, 'token': token})
 
 @app.route("/api/create-checkout", methods=["POST"])
 def create_checkout():
