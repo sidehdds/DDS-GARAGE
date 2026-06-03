@@ -265,4 +265,4 @@ def on_disconnect():
 
 if __name__ == "__main__":
     port = int(os.environ.get('PORT', 5001))
-    socketio.run(app, debug=True, port=port, host='0.0.0.0', allow_unsafe_werkzeug=True)
+    socketio.run(app, host='0.0.0.0', port=port)
