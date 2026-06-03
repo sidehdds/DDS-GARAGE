@@ -3,6 +3,14 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script>
+    (async () => {
+      const sb = window.supabase.createClient('https://oakhuffubspawhqtbigv.supabase.co','sb_publishable_CVs7EnDiKwVB87nrB-QFNw_sVb2bDzy');
+      const { data: { session } } = await sb.auth.getSession();
+      if (!session) window.location.href = '/login';
+    })();
+  </script>
   <title>DDS GARAGE — Diagnostic & Tuning IA</title>
   <meta name="description" content="Diagnostic automobile IA, tuning personnalisé et historique de véhicule. Entrez votre plaque d'immatriculation et obtenez une analyse complète en secondes."/>
   <link rel="stylesheet" href="/static/style.css"/>
