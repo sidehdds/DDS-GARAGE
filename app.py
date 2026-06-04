@@ -59,6 +59,10 @@ def historique():
 
 # ── Admin auth ─────────────────────────────────────────────────────────────
 
+@app.route("/googleb9e501abd5ec41e2.html")
+def google_verify():
+    return app.send_static_file("googleb9e501abd5ec41e2.html")
+
 @app.route("/sitemap.xml")
 def sitemap():
     return app.send_static_file("sitemap.xml"), 200, {"Content-Type": "application/xml"}
