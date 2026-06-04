@@ -59,6 +59,14 @@ def historique():
 
 # ── Admin auth ─────────────────────────────────────────────────────────────
 
+@app.route("/sitemap.xml")
+def sitemap():
+    return app.send_static_file("sitemap.xml"), 200, {"Content-Type": "application/xml"}
+
+@app.route("/robots.txt")
+def robots():
+    return app.send_static_file("robots.txt"), 200, {"Content-Type": "text/plain"}
+
 @app.route("/login")
 def login():
     return render_template("login.html")

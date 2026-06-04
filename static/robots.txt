@@ -1,0 +1,9 @@
+User-agent: *
+Allow: /
+Allow: /diagnostic
+Allow: /tuning
+Allow: /historique
+Disallow: /admin
+Disallow: /api/
+
+Sitemap: https://dds-garage.up.railway.app/sitemap.xml
