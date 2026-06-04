@@ -57,6 +57,9 @@ async function authSignOut() {
 
 async function requireAuth() {
   if (!sb()) return;
+  // Laisser passer les robots Google
+  const ua = navigator.userAgent.toLowerCase();
+  if (ua.includes('googlebot') || ua.includes('bingbot') || ua.includes('bot')) return;
   const { data: { session } } = await sb().auth.getSession();
   if (!session) {
     window.location.href = '/login?redirect=' + encodeURIComponent(window.location.pathname);
