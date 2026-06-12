@@ -71,6 +71,10 @@ def sitemap():
 def robots():
     return app.send_static_file("robots.txt"), 200, {"Content-Type": "text/plain"}
 
+@app.route("/ads.txt")
+def ads():
+    return app.send_static_file("ads.txt"), 200, {"Content-Type": "text/plain"}
+
 @app.route("/login")
 def login():
     return render_template("login.html")
@@ -329,10 +333,11 @@ def api_historique():
     data = request.get_json()
     vehicule = data.get("vehicule", {})
     kilometrage = data.get("kilometrage", "").strip()
+    plaque = data.get("plaque", "").strip()
     if not vehicule:
         return jsonify({"success": False, "error": "Véhicule non identifié"}), 400
     try:
-        resultat = analyser_historique(vehicule, kilometrage)
+        resultat = analyser_historique(vehicule, kilometrage, plaque)
         return jsonify({"success": True, "data": resultat})
     except Exception as e:
         return jsonify({"success": False, "error": str(e)}), 500
