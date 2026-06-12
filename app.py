@@ -1,6 +1,7 @@
 import os
 import uuid
 import stripe
+import resend
 from collections import defaultdict
 from flask import Flask, render_template, request, jsonify, session, redirect
 from flask_cors import CORS
@@ -25,6 +26,7 @@ ADMIN_PASSWORD = os.environ.get('ADMIN_PASSWORD', 'ddsgarage2024')
 stripe.api_key = os.environ.get('STRIPE_SECRET_KEY', '')
 STRIPE_PUB_KEY = os.environ.get('STRIPE_PUBLISHABLE_KEY', '')
 STRIPE_PRICE_ID = os.environ.get('STRIPE_PRICE_ID', '')
+resend.api_key = os.environ.get('RESEND_API_KEY', '')
 FREE_LIMIT = 3
 PROMO_CODES = {c.strip() for c in os.environ.get('PROMO_CODES', 'BLOCITY').split(',')}
 
@@ -238,6 +240,33 @@ def create_checkout():
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
+def send_welcome_email(email):
+    try:
+        resend.Emails.send({
+            "from": "DDS Garage <bienvenue@dds-garage.fr>",
+            "to": [email],
+            "subject": "Bienvenue sur DDS Garage !",
+            "html": """
+            <div style="font-family:sans-serif;max-width:600px;margin:auto;padding:32px">
+              <h1 style="color:#e63946">Bienvenue sur DDS Garage 🚗</h1>
+              <p>Merci pour ton abonnement ! Tu as maintenant accès à toutes les fonctionnalités :</p>
+              <ul>
+                <li><strong>Diagnostic IA</strong> — analyse intelligente des pannes</li>
+                <li><strong>Historique véhicule</strong> — rapport complet par plaque</li>
+                <li><strong>Tuning IA</strong> — conseils personnalisés</li>
+              </ul>
+              <a href="https://dds-garage.up.railway.app/diagnostic"
+                 style="display:inline-block;margin-top:16px;padding:12px 24px;background:#e63946;color:#fff;border-radius:8px;text-decoration:none;font-weight:bold">
+                Accéder à mon espace
+              </a>
+              <p style="margin-top:32px;color:#888;font-size:12px">DDS Garage — Diagnostic automobile propulsé par l'IA</p>
+            </div>
+            """
+        })
+    except Exception:
+        pass
+
+
 @app.route("/payment/success")
 def payment_success():
     session_id = request.args.get('session_id', '')
@@ -254,6 +283,8 @@ def payment_success():
             if user_id:
                 stripe_sub_id = cs.subscription.id if cs.subscription else ''
                 supabase_upsert_subscription(user_id, email, cs.customer or '', stripe_sub_id)
+            if email:
+                send_welcome_email(email)
     except Exception:
         pass
     return render_template('payment_success.html', token=token, email=email,
