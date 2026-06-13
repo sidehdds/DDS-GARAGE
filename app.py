@@ -158,6 +158,7 @@ def admin_send_email():
         try:
             resend.Emails.send({
                 "from": "DDS Garage <onboarding@resend.dev>",
+                "reply_to": "siduty77@gmail.com",
                 "to": [email],
                 "subject": subject,
                 "html": html_content
@@ -303,6 +304,7 @@ def send_welcome_email(email):
     try:
         resend.Emails.send({
             "from": "DDS Garage <onboarding@resend.dev>",
+                "reply_to": "siduty77@gmail.com",
             "to": [email],
             "subject": "Bienvenue sur DDS Garage !",
             "html": """
