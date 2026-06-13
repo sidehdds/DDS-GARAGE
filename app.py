@@ -118,6 +118,8 @@ def admin_email():
 def admin_subscribers():
     if not session.get('admin'):
         return jsonify({"error": "Non autorisé"}), 403
+    if not SUPABASE_URL or not SUPABASE_SERVICE_KEY:
+        return jsonify({"error": "SUPABASE_URL ou SUPABASE_SERVICE_KEY manquant"}), 500
     try:
         resp = requests.get(
             f"{SUPABASE_URL}/auth/v1/admin/users",
@@ -125,6 +127,8 @@ def admin_subscribers():
             params={"per_page": 1000}
         )
         data = resp.json()
+        if "users" not in data:
+            return jsonify({"error": str(data)}), 500
         users = data.get("users", [])
         result = []
         for u in users:
@@ -137,8 +141,8 @@ def admin_subscribers():
                     "status": "actif"
                 })
         return jsonify(result)
-    except Exception:
-        return jsonify([])
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 @app.route("/api/admin/send-email", methods=["POST"])
 def admin_send_email():
