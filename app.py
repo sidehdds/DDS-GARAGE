@@ -132,9 +132,10 @@ def admin_subscribers():
             return jsonify({"error": str(data)}), 500
         users = data.get("users", [])
         result = []
+        admin_email = os.environ.get('ADMIN_EMAIL', 'siduty77@gmail.com')
         for u in users:
             email = u.get("email", "")
-            if email:
+            if email and email != admin_email:
                 result.append({
                     "email": email,
                     "name": (u.get("user_metadata") or {}).get("full_name") or (u.get("user_metadata") or {}).get("name") or "",
