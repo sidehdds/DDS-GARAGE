@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>DDS GARAGE — Stats</title>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+    :root { --bg:#050810; --surface:#090d16; --surface2:#0d1320; --border:#182035; --accent:#e63946; --accent2:#00f0ff; --text:#dde8f5; --muted:#4d6080; }
+    body { background:var(--bg); color:var(--text); font-family:'Inter',sans-serif; min-height:100vh; padding:28px; }
+    h1 { font-family:'Bebas Neue',sans-serif; font-size:2rem; color:var(--accent); margin-bottom:4px; }
+    .nav { display:flex; gap:16px; margin-bottom:24px; }
+    .nav a { color:var(--muted); text-decoration:none; font-size:13px; }
+    .nav a:hover { color:var(--text); }
+    .grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:16px; max-width:900px; margin-bottom:28px; }
+    .stat-card { background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:24px 20px; }
+    .stat-label { font-size:12px; color:var(--muted); text-transform:uppercase; letter-spacing:1px; margin-bottom:10px; }
+    .stat-value { font-size:36px; font-family:'Bebas Neue',sans-serif; color:var(--accent2); }
+    .stat-sub { font-size:12px; color:var(--muted); margin-top:4px; }
+    .card { background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:20px; max-width:900px; }
+    .card-title { font-size:13px; font-weight:600; color:var(--muted); text-transform:uppercase; letter-spacing:1px; margin-bottom:16px; }
+    table { width:100%; border-collapse:collapse; }
+    th { text-align:left; font-size:12px; color:var(--muted); padding:8px 12px; border-bottom:1px solid var(--border); }
+    td { padding:10px 12px; font-size:13px; border-bottom:1px solid #0f1828; }
+    td:last-child { color:var(--muted); font-size:12px; }
+    .plaque-badge { background:var(--surface2); border:1px solid var(--border); border-radius:6px; padding:3px 10px; font-weight:600; font-size:13px; letter-spacing:1px; }
+    .loading { color:var(--muted); font-size:13px; }
+  </style>
+</head>
+<body>
+  <div class="nav">
+    <a href="/admin">← Admin Chat</a>
+    <a href="/admin/email">✉️ Emails</a>
+    <a href="/admin/logout">Déconnexion</a>
+  </div>
+  <h1>Statistiques</h1>
+  <p style="color:var(--muted);font-size:13px;margin-bottom:22px">Vue d'ensemble de l'activité DDS Garage.</p>
+
+  <div class="grid">
+    <div class="stat-card">
+      <div class="stat-label">Users inscrits</div>
+      <div class="stat-value" id="total-users">—</div>
+      <div class="stat-sub">comptes actifs</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Recherches aujourd'hui</div>
+      <div class="stat-value" id="searches-today">—</div>
+      <div class="stat-sub">plaques consultées</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Recherches 7 jours</div>
+      <div class="stat-value" id="searches-week">—</div>
+      <div class="stat-sub">cette semaine</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Total recherches</div>
+      <div class="stat-value" id="searches-total">—</div>
+      <div class="stat-sub">depuis le lancement</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Dernières recherches</div>
+    <table>
+      <thead>
+        <tr>
+          <th>Plaque</th>
+          <th>Date</th>
+        </tr>
+      </thead>
+      <tbody id="last-searches">
+        <tr><td colspan="2" class="loading">Chargement…</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <script>
+    async function loadStats() {
+      try {
+        const res = await fetch('/api/admin/stats');
+        const d = await res.json();
+        if (d.error) { console.error(d.error); return; }
+        document.getElementById('total-users').textContent = d.total_users ?? '—';
+        document.getElementById('searches-today').textContent = d.searches_today ?? '0';
+        document.getElementById('searches-week').textContent = d.searches_week ?? '0';
+        document.getElementById('searches-total').textContent = d.searches_total ?? '0';
+        const tbody = document.getElementById('last-searches');
+        if (!d.last_searches || !d.last_searches.length) {
+          tbody.innerHTML = '<tr><td colspan="2" style="color:var(--muted);font-size:13px">Aucune recherche enregistrée</td></tr>';
+          return;
+        }
+        tbody.innerHTML = d.last_searches.map(s => `
+          <tr>
+            <td><span class="plaque-badge">${s.plaque}</span></td>
+            <td>${new Date(s.created_at).toLocaleString('fr-FR')}</td>
+          </tr>
+        `).join('');
+      } catch(e) {
+        console.error(e);
+      }
+    }
+    loadStats();
+  </script>
+</body>
+</html>

@@ -109,6 +109,84 @@ def admin_chat():
         return redirect("/admin/login")
     return render_template("admin_chat.html")
 
+@app.route("/admin/stats")
+def admin_stats():
+    if not session.get('admin'):
+        return redirect("/admin/login")
+    return render_template("admin_stats.html")
+
+@app.route("/api/admin/stats")
+def api_admin_stats():
+    if not session.get('admin'):
+        return jsonify({"error": "Non autorisé"}), 403
+    try:
+        # Total users
+        users_resp = requests.get(
+            f"{SUPABASE_URL}/auth/v1/admin/users",
+            headers={"apikey": SUPABASE_SERVICE_KEY, "Authorization": f"Bearer {SUPABASE_SERVICE_KEY}"},
+            params={"per_page": 1000}
+        )
+        total_users = len(users_resp.json().get("users", []))
+
+        # Recherches aujourd'hui
+        today = datetime.now().strftime("%Y-%m-%d")
+        searches_today_resp = requests.get(
+            f"{SUPABASE_URL}/rest/v1/searches",
+            headers={"apikey": SUPABASE_SERVICE_KEY, "Authorization": f"Bearer {SUPABASE_SERVICE_KEY}", "Prefer": "count=exact"},
+            params={"created_at": f"gte.{today}T00:00:00", "select": "id"}
+        )
+        total_today = searches_today_resp.headers.get("content-range", "0/0").split("/")[-1]
+
+        # Recherches cette semaine
+        week_ago = (datetime.now() - timedelta(days=7)).strftime("%Y-%m-%d")
+        searches_week_resp = requests.get(
+            f"{SUPABASE_URL}/rest/v1/searches",
+            headers={"apikey": SUPABASE_SERVICE_KEY, "Authorization": f"Bearer {SUPABASE_SERVICE_KEY}", "Prefer": "count=exact"},
+            params={"created_at": f"gte.{week_ago}T00:00:00", "select": "id"}
+        )
+        total_week = searches_week_resp.headers.get("content-range", "0/0").split("/")[-1]
+
+        # Recherches total
+        searches_total_resp = requests.get(
+            f"{SUPABASE_URL}/rest/v1/searches",
+            headers={"apikey": SUPABASE_SERVICE_KEY, "Authorization": f"Bearer {SUPABASE_SERVICE_KEY}", "Prefer": "count=exact"},
+            params={"select": "id"}
+        )
+        total_searches = searches_total_resp.headers.get("content-range", "0/0").split("/")[-1]
+
+        # Dernières recherches
+        last_resp = requests.get(
+            f"{SUPABASE_URL}/rest/v1/searches",
+            headers={"apikey": SUPABASE_SERVICE_KEY, "Authorization": f"Bearer {SUPABASE_SERVICE_KEY}"},
+            params={"select": "plaque,created_at,user_id", "order": "created_at.desc", "limit": 10}
+        )
+        last_searches = last_resp.json() if isinstance(last_resp.json(), list) else []
+
+        return jsonify({
+            "total_users": total_users,
+            "searches_today": total_today,
+            "searches_week": total_week,
+            "searches_total": total_searches,
+            "last_searches": last_searches
+        })
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route("/api/mes-recherches")
+def mes_recherches():
+    user_id = request.headers.get('X-User-Id', '')
+    if not user_id:
+        return jsonify([])
+    try:
+        resp = requests.get(
+            f"{SUPABASE_URL}/rest/v1/searches",
+            headers={"apikey": SUPABASE_SERVICE_KEY, "Authorization": f"Bearer {SUPABASE_SERVICE_KEY}"},
+            params={"user_id": f"eq.{user_id}", "order": "created_at.desc", "limit": 20, "select": "plaque,created_at"}
+        )
+        return jsonify(resp.json() if isinstance(resp.json(), list) else [])
+    except Exception:
+        return jsonify([])
+
 @app.route("/admin/email")
 def admin_email():
     if not session.get('admin'):
@@ -217,6 +295,16 @@ def api_plaque():
     resultat = rechercher_plaque(plaque_formatee)
     if not resultat or resultat.get("error"):
         return jsonify({"success": False, "error": "Plaque introuvable"}), 404
+
+    if user_id and SUPABASE_URL and SUPABASE_SERVICE_KEY:
+        try:
+            requests.post(
+                f"{SUPABASE_URL}/rest/v1/searches",
+                headers={"apikey": SUPABASE_SERVICE_KEY, "Authorization": f"Bearer {SUPABASE_SERVICE_KEY}", "Content-Type": "application/json"},
+                json={"user_id": user_id, "plaque": plaque_formatee}
+            )
+        except Exception:
+            pass
 
     ip = request.headers.get('X-Forwarded-For', request.remote_addr).split(',')[0].strip()
     remaining = -1 if is_premium else max(0, FREE_LIMIT - free_usage[ip])
