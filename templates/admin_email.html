@@ -8,41 +8,48 @@
   <style>
     *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
     :root {
-      --bg: #050810;
-      --surface: #090d16;
-      --surface2: #0d1320;
-      --border: #182035;
-      --accent: #e63946;
-      --text: #dde8f5;
-      --muted: #4d6080;
+      --bg: #050810; --surface: #090d16; --surface2: #0d1320;
+      --border: #182035; --accent: #e63946; --text: #dde8f5; --muted: #4d6080;
     }
-    body { background: var(--bg); color: var(--text); font-family: 'Inter', sans-serif; min-height: 100vh; padding: 32px; }
-    h1 { font-family: 'Bebas Neue', sans-serif; font-size: 2rem; color: var(--accent); margin-bottom: 8px; }
-    .nav { display: flex; gap: 16px; margin-bottom: 32px; }
+    body { background: var(--bg); color: var(--text); font-family: 'Inter', sans-serif; min-height: 100vh; padding: 28px; }
+    h1 { font-family: 'Bebas Neue', sans-serif; font-size: 2rem; color: var(--accent); margin-bottom: 4px; }
+    .nav { display: flex; gap: 16px; margin-bottom: 24px; }
     .nav a { color: var(--muted); text-decoration: none; font-size: 13px; }
     .nav a:hover { color: var(--text); }
-    .card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 28px; max-width: 700px; }
-    label { display: block; font-size: 13px; color: var(--muted); margin-bottom: 6px; margin-top: 20px; }
+    .layout { display: grid; grid-template-columns: 300px 1fr; gap: 20px; max-width: 1100px; }
+    .card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 20px; }
+    .card-title { font-size: 13px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 14px; display: flex; align-items: center; justify-content: space-between; }
+    /* Users list */
+    .search-input { width: 100%; background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; padding: 8px 12px; color: var(--text); font-size: 13px; outline: none; margin-bottom: 10px; }
+    .search-input:focus { border-color: var(--accent); }
+    .select-actions { display: flex; gap: 10px; margin-bottom: 10px; }
+    .select-actions button { background: none; border: 1px solid var(--border); border-radius: 6px; color: var(--muted); font-size: 12px; padding: 4px 10px; cursor: pointer; }
+    .select-actions button:hover { color: var(--text); border-color: var(--muted); }
+    .user-list { max-height: 420px; overflow-y: auto; display: flex; flex-direction: column; gap: 6px; }
+    .user-item { display: flex; align-items: center; gap: 10px; background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; padding: 10px 12px; cursor: pointer; transition: border-color .15s; }
+    .user-item:hover { border-color: var(--muted); }
+    .user-item.selected { border-color: var(--accent); background: #1a0b0d; }
+    .user-item input[type=checkbox] { accent-color: var(--accent); width: 15px; height: 15px; cursor: pointer; flex-shrink: 0; }
+    .user-email { font-size: 13px; color: var(--text); flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .user-status { font-size: 11px; padding: 2px 8px; border-radius: 20px; flex-shrink: 0; }
+    .user-status.active { background: #0d2b1a; color: #4ade80; }
+    .user-status.other { background: var(--surface); color: var(--muted); }
+    .empty-state { text-align: center; color: var(--muted); font-size: 13px; padding: 24px 0; }
+    .selected-count { font-size: 12px; color: var(--accent); font-weight: 600; }
+    /* Form */
+    label { display: block; font-size: 13px; color: var(--muted); margin-bottom: 6px; margin-top: 18px; }
     label:first-of-type { margin-top: 0; }
-    input, textarea {
-      width: 100%; background: var(--surface2); border: 1px solid var(--border);
-      border-radius: 8px; padding: 10px 14px; color: var(--text); font-family: 'Inter', sans-serif;
-      font-size: 14px; outline: none;
-    }
-    input:focus, textarea:focus { border-color: var(--accent); }
-    textarea { min-height: 200px; resize: vertical; }
-    .btn {
-      margin-top: 24px; padding: 12px 28px; background: var(--accent); color: #fff;
-      border: none; border-radius: 8px; font-size: 15px; font-weight: 600;
-      cursor: pointer; transition: opacity .2s;
-    }
+    input[type=text], textarea { width: 100%; background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; padding: 10px 14px; color: var(--text); font-family: 'Inter', sans-serif; font-size: 14px; outline: none; }
+    input[type=text]:focus, textarea:focus { border-color: var(--accent); }
+    textarea { min-height: 180px; resize: vertical; }
+    .preview-toggle { color: var(--accent); font-size: 12px; cursor: pointer; margin-top: 6px; display: inline-block; }
+    #preview { margin-top: 10px; border: 1px solid var(--border); border-radius: 8px; padding: 16px; background: #fff; color: #000; display: none; min-height: 80px; }
+    .btn { margin-top: 20px; width: 100%; padding: 13px; background: var(--accent); color: #fff; border: none; border-radius: 8px; font-size: 15px; font-weight: 700; cursor: pointer; transition: opacity .2s; }
     .btn:hover { opacity: .85; }
     .btn:disabled { opacity: .4; cursor: not-allowed; }
-    .result { margin-top: 20px; padding: 14px 18px; border-radius: 8px; font-size: 14px; display: none; }
+    .result { margin-top: 14px; padding: 12px 16px; border-radius: 8px; font-size: 14px; display: none; }
     .result.success { background: #0d2b1a; border: 1px solid #1a5c35; color: #4ade80; }
     .result.error { background: #2b0d0d; border: 1px solid #5c1a1a; color: #f87171; }
-    .preview-toggle { color: var(--accent); font-size: 12px; cursor: pointer; margin-top: 8px; display: inline-block; }
-    #preview { margin-top: 12px; border: 1px solid var(--border); border-radius: 8px; padding: 16px; background: #fff; color: #000; display: none; min-height: 100px; }
   </style>
 </head>
 <body>
@@ -51,73 +58,152 @@
     <a href="/admin/logout">Déconnexion</a>
   </div>
   <h1>Envoi Email</h1>
-  <p style="color:var(--muted);font-size:13px;margin-bottom:24px">Envoie un email à tous tes abonnés actifs.</p>
+  <p style="color:var(--muted);font-size:13px;margin-bottom:22px">Sélectionne les destinataires et compose ton message.</p>
 
-  <div class="card">
-    <label>Sujet</label>
-    <input type="text" id="subject" placeholder="Ex: Nouvelle fonctionnalité DDS Garage 🚗"/>
+  <div class="layout">
 
-    <label>Contenu HTML</label>
-    <textarea id="html" placeholder="<p>Bonjour,</p><p>...</p>"></textarea>
-    <span class="preview-toggle" onclick="togglePreview()">Aperçu →</span>
-    <div id="preview"></div>
+    <!-- COLONNE GAUCHE : liste des users -->
+    <div class="card">
+      <div class="card-title">
+        Destinataires
+        <span class="selected-count" id="selected-count">0 sélectionné</span>
+      </div>
+      <input class="search-input" type="text" id="search" placeholder="Rechercher un email…" oninput="filterUsers()"/>
+      <div class="select-actions">
+        <button onclick="selectAll()">Tout sélectionner</button>
+        <button onclick="deselectAll()">Désélectionner</button>
+      </div>
+      <div class="user-list" id="user-list">
+        <div class="empty-state">Chargement…</div>
+      </div>
+    </div>
 
-    <button class="btn" id="sendBtn" onclick="sendEmail()">Envoyer à tous les abonnés</button>
-    <div class="result" id="result"></div>
+    <!-- COLONNE DROITE : formulaire -->
+    <div class="card">
+      <label>Sujet</label>
+      <input type="text" id="subject" placeholder="Ex: Nouveauté DDS Garage 🚗"/>
+
+      <label>Contenu HTML</label>
+      <textarea id="html" placeholder="<p>Bonjour,</p><p>…</p>"></textarea>
+      <span class="preview-toggle" onclick="togglePreview()">Aperçu →</span>
+      <div id="preview"></div>
+
+      <button class="btn" id="sendBtn" onclick="sendEmail()">Envoyer</button>
+      <div class="result" id="result"></div>
+    </div>
+
   </div>
 
   <script>
+    let allUsers = [];
+
+    async function loadUsers() {
+      try {
+        const res = await fetch('/api/admin/subscribers');
+        allUsers = await res.json();
+        renderUsers(allUsers);
+      } catch {
+        document.getElementById('user-list').innerHTML = '<div class="empty-state">Erreur de chargement</div>';
+      }
+    }
+
+    function renderUsers(users) {
+      const list = document.getElementById('user-list');
+      if (!users.length) {
+        list.innerHTML = '<div class="empty-state">Aucun abonné trouvé</div>';
+        return;
+      }
+      list.innerHTML = users.map(u => `
+        <div class="user-item" id="item-${btoa(u.email)}" onclick="toggleUser('${u.email}')">
+          <input type="checkbox" id="chk-${btoa(u.email)}" onclick="event.stopPropagation();toggleUser('${u.email}')"/>
+          <span class="user-email">${u.email}</span>
+          <span class="user-status ${u.status === 'active' ? 'active' : 'other'}">${u.status || '—'}</span>
+        </div>
+      `).join('');
+      updateCount();
+    }
+
+    function toggleUser(email) {
+      const key = btoa(email);
+      const item = document.getElementById('item-' + key);
+      const chk = document.getElementById('chk-' + key);
+      chk.checked = !chk.checked;
+      item.classList.toggle('selected', chk.checked);
+      updateCount();
+    }
+
+    function selectAll() {
+      document.querySelectorAll('.user-item').forEach(item => {
+        item.classList.add('selected');
+        item.querySelector('input').checked = true;
+      });
+      updateCount();
+    }
+
+    function deselectAll() {
+      document.querySelectorAll('.user-item').forEach(item => {
+        item.classList.remove('selected');
+        item.querySelector('input').checked = false;
+      });
+      updateCount();
+    }
+
+    function filterUsers() {
+      const q = document.getElementById('search').value.toLowerCase();
+      renderUsers(allUsers.filter(u => u.email.toLowerCase().includes(q)));
+    }
+
+    function updateCount() {
+      const n = document.querySelectorAll('.user-item input:checked').length;
+      document.getElementById('selected-count').textContent = n + ' sélectionné' + (n > 1 ? 's' : '');
+    }
+
     function togglePreview() {
       const p = document.getElementById('preview');
-      const html = document.getElementById('html').value;
-      if (p.style.display === 'block') {
-        p.style.display = 'none';
-      } else {
-        p.innerHTML = html;
-        p.style.display = 'block';
-      }
+      p.innerHTML = document.getElementById('html').value;
+      p.style.display = p.style.display === 'block' ? 'none' : 'block';
     }
 
     async function sendEmail() {
       const subject = document.getElementById('subject').value.trim();
       const html = document.getElementById('html').value.trim();
+      const emails = [...document.querySelectorAll('.user-item input:checked')]
+        .map(chk => allUsers.find(u => btoa(u.email) === chk.id.replace('chk-', ''))?.email)
+        .filter(Boolean);
       const btn = document.getElementById('sendBtn');
       const result = document.getElementById('result');
 
       if (!subject || !html) {
-        result.className = 'result error';
-        result.textContent = 'Sujet et contenu requis.';
-        result.style.display = 'block';
-        return;
+        result.className = 'result error'; result.textContent = 'Sujet et contenu requis.'; result.style.display = 'block'; return;
+      }
+      if (!emails.length) {
+        result.className = 'result error'; result.textContent = 'Sélectionne au moins un destinataire.'; result.style.display = 'block'; return;
       }
 
-      btn.disabled = true;
-      btn.textContent = 'Envoi en cours...';
-      result.style.display = 'none';
+      btn.disabled = true; btn.textContent = 'Envoi en cours…'; result.style.display = 'none';
 
       try {
         const res = await fetch('/api/admin/send-email', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ subject, html })
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({subject, html, emails})
         });
         const data = await res.json();
         if (res.ok) {
           result.className = 'result success';
-          result.textContent = `✓ ${data.sent} email(s) envoyé(s) sur ${data.total} abonnés.${data.errors ? ` (${data.errors} erreur(s))` : ''}`;
+          result.textContent = `✓ ${data.sent} email(s) envoyé(s).${data.errors ? ` (${data.errors} erreur(s))` : ''}`;
         } else {
           result.className = 'result error';
           result.textContent = data.error || 'Erreur lors de l\'envoi.';
         }
-      } catch (e) {
-        result.className = 'result error';
-        result.textContent = 'Erreur réseau.';
+      } catch {
+        result.className = 'result error'; result.textContent = 'Erreur réseau.';
       }
 
-      result.style.display = 'block';
-      btn.disabled = false;
-      btn.textContent = 'Envoyer à tous les abonnés';
+      result.style.display = 'block'; btn.disabled = false; btn.textContent = 'Envoyer';
     }
+
+    loadUsers();
   </script>
 </body>
 </html>

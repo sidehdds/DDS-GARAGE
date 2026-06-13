@@ -114,6 +114,28 @@ def admin_email():
         return redirect("/admin/login")
     return render_template("admin_email.html")
 
+@app.route("/api/admin/subscribers")
+def admin_subscribers():
+    if not session.get('admin'):
+        return jsonify({"error": "Non autorisé"}), 403
+    try:
+        resp = requests.get(
+            f"{SUPABASE_URL}/rest/v1/subscriptions",
+            headers={"apikey": SUPABASE_SERVICE_KEY, "Authorization": f"Bearer {SUPABASE_SERVICE_KEY}"},
+            params={"select": "email,status,created_at"}
+        )
+        rows = resp.json()
+        seen = set()
+        result = []
+        for r in rows:
+            e = r.get("email", "")
+            if e and e not in seen:
+                seen.add(e)
+                result.append({"email": e, "status": r.get("status", ""), "created_at": r.get("created_at", "")})
+        return jsonify(result)
+    except Exception:
+        return jsonify([])
+
 @app.route("/api/admin/send-email", methods=["POST"])
 def admin_send_email():
     if not session.get('admin'):
@@ -121,21 +143,11 @@ def admin_send_email():
     data = request.get_json()
     subject = data.get("subject", "").strip()
     html_content = data.get("html", "").strip()
+    emails = data.get("emails", [])
     if not subject or not html_content:
         return jsonify({"error": "Sujet et contenu requis"}), 400
-    # Récupérer tous les emails depuis Supabase
-    try:
-        resp = requests.get(
-            f"{SUPABASE_URL}/rest/v1/subscriptions",
-            headers={"apikey": SUPABASE_SERVICE_KEY, "Authorization": f"Bearer {SUPABASE_SERVICE_KEY}"},
-            params={"select": "email", "status": "eq.active"}
-        )
-        rows = resp.json()
-        emails = list({r["email"] for r in rows if r.get("email")})
-    except Exception:
-        emails = []
     if not emails:
-        return jsonify({"error": "Aucun abonné trouvé"}), 404
+        return jsonify({"error": "Aucun destinataire sélectionné"}), 400
     sent = 0
     errors = 0
     for email in emails:
