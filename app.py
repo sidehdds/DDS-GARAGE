@@ -132,10 +132,9 @@ def admin_subscribers():
             return jsonify({"error": str(data)}), 500
         users = data.get("users", [])
         result = []
-        admin_email = os.environ.get('ADMIN_EMAIL', 'siduty77@gmail.com')
         for u in users:
             email = u.get("email", "")
-            if email and email != admin_email:
+            if email:
                 result.append({
                     "email": email,
                     "name": (u.get("user_metadata") or {}).get("full_name") or (u.get("user_metadata") or {}).get("name") or "",
@@ -164,7 +163,6 @@ def admin_send_email():
         try:
             resend.Emails.send({
                 "from": "DDS Garage <onboarding@resend.dev>",
-                "reply_to": "siduty77@gmail.com",
                 "to": [email],
                 "subject": subject,
                 "html": html_content
