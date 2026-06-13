@@ -1,5 +1,6 @@
 import os
 import uuid
+import requests
 import stripe
 import resend
 from collections import defaultdict
