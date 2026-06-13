@@ -25,19 +25,13 @@
   <script type="application/ld+json">
   {"@context":"https://schema.org","@type":"WebApplication","name":"DDS Garage","url":"https://dds-garage.up.railway.app","description":"Diagnostic automobile IA, tuning et historique véhicule","applicationCategory":"AutomotiveApplication","inLanguage":"fr","offers":{"@type":"Offer","price":"4.99","priceCurrency":"EUR","priceSpecification":{"@type":"UnitPriceSpecification","billingDuration":"P1M"}}}
   </script>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script>
-    (async () => {
-      const sb = window.supabase.createClient('https://oakhuffubspawhqtbigv.supabase.co','sb_publishable_CVs7EnDiKwVB87nrB-QFNw_sVb2bDzy');
-      const { data: { session } } = await sb.auth.getSession();
-      if (!session) window.location.href = '/login';
-    })();
-  </script>
-  <title>DDS GARAGE — Diagnostic & Tuning IA</title>
-  <meta name="description" content="Diagnostic automobile IA, tuning personnalisé et historique de véhicule. Entrez votre plaque d'immatriculation et obtenez une analyse complète en secondes."/>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link rel="preconnect" href="https://cdn.jsdelivr.net"/>
   <link rel="stylesheet" href="/static/style.css"/>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@300;400;500;600;700&display=swap&display=swap" rel="stylesheet"/>
   <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7477778365839154" crossorigin="anonymous"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
   <style>
     /* Landing-specific overrides */
     body::before {
@@ -564,9 +558,8 @@
       <span class="lc-fab-badge lc-hidden" id="lc-badge">1</span>
     </button>
   </div>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
-  <script src="/static/livechat.js"></script>
+  <script src="https://cdn.socket.io/4.7.5/socket.io.min.js" defer></script>
+  <script src="/static/livechat.js" defer></script>
 
   <!-- COOKIE BANNER -->
   <div id="cookie-banner" style="display:none">
