@@ -122,7 +122,7 @@ def admin_subscribers():
         resp = requests.get(
             f"{SUPABASE_URL}/rest/v1/subscriptions",
             headers={"apikey": SUPABASE_SERVICE_KEY, "Authorization": f"Bearer {SUPABASE_SERVICE_KEY}"},
-            params={"select": "email,status,created_at"}
+            params={"select": "email,status,created_at", "order": "created_at.desc"}
         )
         rows = resp.json()
         seen = set()
