@@ -116,8 +116,10 @@
       list.innerHTML = users.map(u => `
         <div class="user-item" id="item-${btoa(u.email)}" onclick="toggleUser('${u.email}')">
           <input type="checkbox" id="chk-${btoa(u.email)}" onclick="event.stopPropagation();toggleUser('${u.email}')"/>
-          <span class="user-email">${u.email}</span>
-          <span class="user-status ${u.status === 'active' ? 'active' : 'other'}">${u.status || '—'}</span>
+          <div style="flex:1;overflow:hidden">
+            ${u.name ? `<div style="font-size:12px;color:#dde8f5;font-weight:600">${u.name}</div>` : ''}
+            <div class="user-email" style="font-size:12px;color:#4d6080">${u.email}</div>
+          </div>
         </div>
       `).join('');
       updateCount();

@@ -120,18 +120,22 @@ def admin_subscribers():
         return jsonify({"error": "Non autorisé"}), 403
     try:
         resp = requests.get(
-            f"{SUPABASE_URL}/rest/v1/subscriptions",
+            f"{SUPABASE_URL}/auth/v1/admin/users",
             headers={"apikey": SUPABASE_SERVICE_KEY, "Authorization": f"Bearer {SUPABASE_SERVICE_KEY}"},
-            params={"select": "email,status,created_at", "order": "created_at.desc"}
+            params={"per_page": 1000}
         )
-        rows = resp.json()
-        seen = set()
+        data = resp.json()
+        users = data.get("users", [])
         result = []
-        for r in rows:
-            e = r.get("email", "")
-            if e and e not in seen:
-                seen.add(e)
-                result.append({"email": e, "status": r.get("status", ""), "created_at": r.get("created_at", "")})
+        for u in users:
+            email = u.get("email", "")
+            if email:
+                result.append({
+                    "email": email,
+                    "name": (u.get("user_metadata") or {}).get("full_name") or (u.get("user_metadata") or {}).get("name") or "",
+                    "created_at": u.get("created_at", ""),
+                    "status": "actif"
+                })
         return jsonify(result)
     except Exception:
         return jsonify([])
